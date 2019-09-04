@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from torch.optim import SGD
 from datasets.cityscapes import cityscapestrain
-from backbone.resnet import resnet
+from model.origin_res import Origin_Res
 import argparse
 import config
 
@@ -34,7 +35,7 @@ def get_params(model, key):
     if key == '2x':
         for m in model.named_modules():
             if isinstance(m[1], nn.Conv2d) or isinstance(m[1], nn.SyncBatchNorm):
-                if m[1].weight is not None:
+                if m[1].bias is not None:
                     yield m[1].bias
 
 def poly_lr_scheduler(opt, init_lr, iter, lr_decay_iter, max_iter, power):
@@ -46,8 +47,11 @@ def poly_lr_scheduler(opt, init_lr, iter, lr_decay_iter, max_iter, power):
     opt.param_groups[2]['lr'] = 2 * new_lr
 
 
-def criterion():
-    pass
+def criterion(output, label):
+    nll_loss = nn.NLLLoss(weight=None, reduction='none', ignore_index=255)
+    loss = nll_loss(F.log_softmax(output, dim=1), label)
+    return loss.mean(dim=2).mean(dim=1)
+
 
 def train(args):
     torch.cuda.set_device(args.local_rank)
@@ -60,7 +64,7 @@ def train(args):
 
     dataset = cityscapestrain(mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
-    dataloader = DataLoader(cityscapestrain,
+    dataloader = DataLoader(dataset,
                             batch_size=1,
                             shuffle=False,
                             sampler=sampler,
@@ -68,7 +72,7 @@ def train(args):
                             pin_memory=True,
                             drop_last=True)
 
-    net = resnet(101, 16)
+    net = Origin_Res()
     net.cuda()
 
     optimizer = SGD(
@@ -119,10 +123,13 @@ def train(args):
         output = net(image)
 
         loss = criterion(output, label)
+        loss = loss.mean()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
+        if (i+1) % 10 == 0:
+            print('loss: {}'.format(loss.item()))
 
 
 
