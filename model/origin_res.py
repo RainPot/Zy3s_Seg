@@ -11,7 +11,7 @@ class ConvBNReLU(nn.Module):
             padding=padding, dilation=dilation, bias=False
         )
 
-        self.bn = nn.SyncBatchNorm(c_out)
+        self.bn = nn.BatchNorm2d(c_out)
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):

@@ -27,8 +27,9 @@ class cityscapestrain(Dataset):
             mask_names = os.listdir(os.path.join(mask_dir, mask_folders))
             maskpths = []
             for el in mask_names:
-                if el[-12:-3] == 'labelIds.':
-                    maskpths.append(os.path.join(mask_dir, mask_folders, el))
+                # if el[-12:-3] == 'labelIds.':
+                #     maskpths.append(os.path.join(mask_dir, mask_folders, el))
+                maskpths.append(os.path.join(mask_dir, mask_folders, el))
             self.label.extend(maskpths)
 
         self.id_to_trainid = {-1: ignore_label, 0: ignore_label, 1: ignore_label, 2: ignore_label,
@@ -77,9 +78,12 @@ class cityscapestrain(Dataset):
             image, label = data['im'], data['lb']
 
         imgs = self.to_tensor(image)
-        label = np.array(label).astype(np.int64)[np.newaxis, :]
-        label = self.ID2TrainID(label)
+        #label = np.array(label).astype(np.int64)[np.newaxis, :]
+        label = np.array(label).astype(np.int64)
+        # label = self.ID2TrainID(label)
         return imgs, label
+
+
 
 
 if __name__ == '__main__':

@@ -1,14 +1,29 @@
 import torch
 import torch.nn as nn
+import os
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from torch.optim import SGD
 from datasets.cityscapes import cityscapestrain
 from model.origin_res import Origin_Res
+from model.deeplabv3 import Deeplab_v3plus
 import argparse
 import config
+from pallete import get_mask_pallete
 
+
+
+class Criterion(nn.Module):
+    def __init__(self):
+        super(Criterion, self).__init__()
+        self.NLLLoss = nn.NLLLoss(weight=None, reduction='none', ignore_index=255)
+
+    def forward(self, output, label):
+        a = F.log_softmax(output, dim=1)
+        loss = self.NLLLoss(F.log_softmax(output, dim=1), label)
+        return loss.mean(dim=2).mean(dim=1)
 
 def parse_args():
     parse = argparse.ArgumentParser()
@@ -47,11 +62,6 @@ def poly_lr_scheduler(opt, init_lr, iter, lr_decay_iter, max_iter, power):
     opt.param_groups[2]['lr'] = 2 * new_lr
 
 
-def criterion(output, label):
-    nll_loss = nn.NLLLoss(weight=None, reduction='none', ignore_index=255)
-    loss = nll_loss(F.log_softmax(output, dim=1), label)
-    return loss.mean(dim=2).mean(dim=1)
-
 
 def train(args):
     torch.cuda.set_device(args.local_rank)
@@ -68,12 +78,20 @@ def train(args):
                             batch_size=1,
                             shuffle=False,
                             sampler=sampler,
-                            num_workers=4,
+                            num_workers=2,
                             pin_memory=True,
                             drop_last=True)
 
-    net = Origin_Res()
+    # net = Origin_Res()
+    net = Deeplab_v3plus()
+    net.train()
     net.cuda()
+    net = nn.parallel.DistributedDataParallel(net,
+                                              device_ids=[args.local_rank, ],
+                                              output_device=args.local_rank)
+    net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
+
+    criterion = Criterion().cuda()
 
     optimizer = SGD(
         params=[
@@ -96,15 +114,17 @@ def train(args):
         momentum=config.LR_MOM
     )
 
-    net = nn.parallel.DistributedDataParallel(net,
-                                              device_ids=[args.local_rank,],
-                                              output_device=args.local_rank)
-    net.train()
+
+    total_loss = 0
+    n_epoch = 0
+
     data = iter(dataloader)
     for i in range(config.max_iter):
         try:
             image, label = next(data)
         except:
+            n_epoch += 1
+            sampler.set_epoch(n_epoch)
             data = iter(dataloader)
             image, label = next(data)
 
@@ -118,28 +138,33 @@ def train(args):
         )
 
         image = image.cuda()
+        image_see = image.cpu().numpy()
         label = label.cuda()
+        label_see = label.cpu().numpy()
 
         output = net(image)
+        output_see = output.detach().cpu().numpy()
+
+        predict = torch.max(output[0], 1)[1].cpu().numpy() + 1
+
+        mask = get_mask_pallete(predict, 'cityscapes')
+
 
         loss = criterion(output, label)
         loss = loss.mean()
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        total_loss += loss.item()
 
-        if (i+1) % 10 == 0:
-            print('loss: {}'.format(loss.item()))
+        if (i+1) % 10 == 0 and dist.get_rank() == 0:
+            print('iter: {}, loss: {}'.format(i+1, total_loss / 100.0))
+            total_loss = 0
 
-
-
-
+        if (i+1) % 500 == 0 and dist.get_rank() == 0:
+            torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 
 if __name__ == '__main__':
     args = parse_args()
     train(args)
-
-
-
-
