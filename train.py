@@ -6,12 +6,13 @@ import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from torch.optim import SGD
-from datasets.cityscapes import cityscapestrain
+from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 import argparse
 import config
 from pallete import get_mask_pallete
+import time
 
 
 
@@ -72,24 +73,26 @@ def train(args):
         rank=args.local_rank
     )
 
-    dataset = cityscapestrain(mode='train')
+    dataset = CityScapes(mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(dataset,
-                            batch_size=1,
+                            batch_size=4,
                             shuffle=False,
                             sampler=sampler,
-                            num_workers=2,
+                            num_workers=4,
                             pin_memory=True,
                             drop_last=True)
 
-    # net = Origin_Res()
-    net = Deeplab_v3plus()
+
+    net = Origin_Res()
+    # net = Deeplab_v3plus()
     net.train()
     net.cuda()
-    net = nn.parallel.DistributedDataParallel(net,
-                                              device_ids=[args.local_rank, ],
-                                              output_device=args.local_rank)
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
+    net = nn.parallel.DistributedDataParallel(net,
+                                              device_ids=[args.local_rank],
+                                              output_device=args.local_rank)
+
 
     criterion = Criterion().cuda()
 
@@ -120,6 +123,7 @@ def train(args):
 
     data = iter(dataloader)
     for i in range(config.max_iter):
+        start = time.time()
         try:
             image, label = next(data)
         except:
@@ -140,6 +144,7 @@ def train(args):
         image = image.cuda()
         image_see = image.cpu().numpy()
         label = label.cuda()
+        label = torch.squeeze(label, 1)
         label_see = label.cpu().numpy()
 
         output = net(image)
@@ -157,12 +162,19 @@ def train(args):
         optimizer.step()
         total_loss += loss.item()
 
-        if (i+1) % 10 == 0 and dist.get_rank() == 0:
-            print('iter: {}, loss: {}'.format(i+1, total_loss / 100.0))
+        if (i+1) % 2 == 0 and dist.get_rank() == 0:
+            end = time.time()
+            once_time = end - start
+            remaining_step = config.max_iter - i
+            remaining_time = once_time * remaining_step
+            m, s = divmod(remaining_time, 60)
+            h, m = divmod(m, 60)
+            print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 10.0, int(h), int(m)))
             total_loss = 0
 
         if (i+1) % 500 == 0 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
+
 
 
 if __name__ == '__main__':

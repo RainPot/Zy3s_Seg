@@ -5,7 +5,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
-from datasets.cityscapes import cityscapestrain
+from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from metric import fast_hist, cal_scores
@@ -33,7 +33,7 @@ def eval(args):
         rank=0
     )
 
-    dataset = cityscapestrain(mode='val')
+    dataset = CityScapes(mode='val')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(dataset,
                             batch_size=1,
@@ -43,9 +43,10 @@ def eval(args):
                             pin_memory=True,
                             drop_last=False)
 
-    # net = Origin_Res()
-    net = Deeplab_v3plus()
+    net = Origin_Res()
+    # net = Deeplab_v3plus()
     net.cuda()
+    net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
@@ -63,6 +64,7 @@ def eval(args):
                 break
             image = image.cuda()
             label = label.cuda()
+            label = torch.squeeze(label, 1)
 
             output = net(image)
             pred = output.max(dim=1)[1]
