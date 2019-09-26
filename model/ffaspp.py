@@ -1,16 +1,10 @@
-#!/usr/bin/python
-# -*- encoding: utf-8 -*-
-
-
 import torch
 import torch.nn as nn
 import torch.utils.model_zoo as modelzoo
 import torch.nn.functional as F
 import torchvision
-
-from backbone.resnet_old import resnet101
-from backbone.resnet import resnet
 import config
+from backbone.resnet import resnet
 
 
 
@@ -25,18 +19,23 @@ class ConvBNReLU(nn.Module):
                 dilation = dilation,
                 bias = True)
         self.bn = nn.BatchNorm2d(out_chan)
-        # self.init_weight()
+        self.init_weight()
 
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
         return x
 
-    # def init_weight(self):
-    #     for ly in self.children():
-    #         if isinstance(ly, nn.Conv2d):
-    #             nn.init.kaiming_normal_(ly.weight, a=1)
-    #             if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+
+class FeatureFusion(nn.Module):
+    def __init__(self):
+        super(FeatureFusion, self).__init__()
+        pass
 
 
 class ASPP(nn.Module):
@@ -54,7 +53,7 @@ class ASPP(nn.Module):
         else:
             self.conv_out = ConvBNReLU(out_chan*4, out_chan, ks=1)
 
-        # self.init_weight()
+        self.init_weight()
 
     def forward(self, x):
         H, W = x.size()[2:]
@@ -72,11 +71,11 @@ class ASPP(nn.Module):
         feat = self.conv_out(feat)
         return feat
 
-    # def init_weight(self):
-    #     for ly in self.children():
-    #         if isinstance(ly, nn.Conv2d):
-    #             nn.init.kaiming_normal_(ly.weight, a=1)
-    #             if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
 
 class Decoder(nn.Module):
@@ -89,7 +88,7 @@ class Decoder(nn.Module):
                 )
         self.conv_out = nn.Conv2d(256, n_classes, kernel_size=1, bias=False)
 
-        # self.init_weight()
+        self.init_weight()
 
     def forward(self, feat_low, feat_aspp):
         H, W = feat_low.size()[2:]
@@ -101,24 +100,24 @@ class Decoder(nn.Module):
         logits = self.conv_out(feat_out)
         return logits
 
-    # def init_weight(self):
-    #     for ly in self.children():
-    #         if isinstance(ly, nn.Conv2d):
-    #             nn.init.kaiming_normal_(ly.weight, a=1)
-    #             if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
 
 class Deeplab_v3plus(nn.Module):
     def __init__(self, *args, **kwargs):
         super(Deeplab_v3plus, self).__init__()
         self.backbone = resnet(101, 16)
-        self.aspp = ASPP(in_chan=2048, out_chan=256, with_gp=False)
+        self.aspp = ASPP(in_chan=2048, out_chan=256, with_gp=True)
         self.decoder = Decoder(config.classes, low_chan=256)
         #  self.backbone = Darknet53(stride=16)
         #  self.aspp = ASPP(in_chan=1024, out_chan=256, with_gp=False)
         #  self.decoder = Decoder(cfg.n_classes, low_chan=128)
 
-        # self.init_weight()
+        self.init_weight()
 
     def forward(self, x):
         H, W = x.size()[2:]
@@ -129,22 +128,8 @@ class Deeplab_v3plus(nn.Module):
 
         return logits
 
-    # def init_weight(self):
-    #     for ly in self.children():
-    #         if isinstance(ly, nn.Conv2d):
-    #             nn.init.kaiming_normal_(ly.weight, a=1)
-    #             if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-
-
-
-if __name__ == "__main__":
-    net = Deeplab_v3plus(19)
-    net.cuda()
-    net.train()
-    net = nn.DataParallel(net)
-    for i in range(100):
-        #  with torch.no_grad():
-        in_ten = torch.randn((1, 3, 768, 768)).cuda()
-        logits = net(in_ten)
-        print(i)
-        print(logits.size())
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)

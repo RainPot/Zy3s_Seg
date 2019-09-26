@@ -9,6 +9,7 @@ from torch.optim import SGD
 from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
+from model.highorder import HighOrder
 import argparse
 import config
 from pallete import get_mask_pallete
@@ -36,22 +37,26 @@ def parse_args():
     )
     return parse.parse_args()
 
+
 def get_params(model, key):
     if key == '1x':
         for m in model.named_modules():
             if isinstance(m[1], nn.Conv2d):
+                print('nn.Conv2d' + str(m[1]))
                 yield m[1].weight
 
     if key == '1y':
         for m in model.named_modules():
             if isinstance(m[1], nn.SyncBatchNorm):
                 if m[1].weight is not None:
+                    print('nn.BatchNorm2d' + str(m[1]))
                     yield m[1].weight
 
     if key == '2x':
         for m in model.named_modules():
             if isinstance(m[1], nn.Conv2d) or isinstance(m[1], nn.SyncBatchNorm):
                 if m[1].bias is not None:
+                    print('3' + str(m[1]))
                     yield m[1].bias
 
 def poly_lr_scheduler(opt, init_lr, iter, lr_decay_iter, max_iter, power):
@@ -71,6 +76,7 @@ def train(args):
         init_method='tcp://127.0.0.1:{}'.format(config.port),
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
+        # rank=0
     )
 
     dataset = CityScapes(mode='train')
@@ -84,8 +90,12 @@ def train(args):
                             drop_last=True)
 
 
-    net = Origin_Res()
+    # net = Origin_Res()
+    net = HighOrder(19)
+    # for i in net.named_modules():
+    #     print(i)
     # net = Deeplab_v3plus()
+
     net.train()
     net.cuda()
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
@@ -162,17 +172,17 @@ def train(args):
         optimizer.step()
         total_loss += loss.item()
 
-        if (i+1) % 2 == 0 and dist.get_rank() == 0:
+        if (i+1) % 100 == 0 and dist.get_rank() == 0:
             end = time.time()
             once_time = end - start
             remaining_step = config.max_iter - i
             remaining_time = once_time * remaining_step
             m, s = divmod(remaining_time, 60)
             h, m = divmod(m, 60)
-            print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 10.0, int(h), int(m)))
+            print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 500 == 0 and dist.get_rank() == 0:
+        if (i+1) % 1000 == 0 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 

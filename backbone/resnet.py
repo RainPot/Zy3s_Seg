@@ -138,7 +138,7 @@ def resnet(n_layers, stride):
     }[n_layers]
 
     net = ResNet(Bottleneck, layers=layers, stride=stride)
-    state_dict = torch.load(pretrained_path)
+    state_dict = torch.load(pretrained_path, map_location='cpu')
     net.load_state_dict(state_dict, strict=False)
 
     return net
