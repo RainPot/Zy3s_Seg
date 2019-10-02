@@ -93,7 +93,11 @@ class Feature_Fusion(nn.Module):
         self.featurefusion3 = ConvBNReLU(1024, 256, padding=6, dilation=6)
         self.featurefusion4 = ConvBNReLU(1024, 256, padding=1, dilation=1)
 
-        self.avg = nn.AdaptiveAvgPool2d((1, 1))
+        self.avg1 = nn.AdaptiveAvgPool2d((1, 1))
+        self.avg2 = nn.AdaptiveAvgPool2d((2, 2))
+        self.avg3 = nn.AdaptiveAvgPool2d((3, 3))
+        self.avg4 = nn.AdaptiveAvgPool2d((6, 6))
+        # self.avg5 = nn.AdaptiveAvgPool2d((12, 12))
         self.featurefusion5 = ConvBNReLU(2048, 256, kernel_size=1, stride=1, padding=0)
 
         self.conv_out = ConvBNReLU(256 * 5, 256, kernel_size=1, stride=1, padding=0)
@@ -103,15 +107,26 @@ class Feature_Fusion(nn.Module):
         H, W = x4.size()[2:]
 
         feat1 = self.featurefusion1(x1_x4)
-        feat2 = self.featurefusion2(x2_x4)
-        feat3 = self.featurefusion3(x3_x4)
-        feat4 = self.featurefusion4(x4)
+        feat1 = self.avg2(feat1)
+        feat1 = F.interpolate(feat1, size=(H, W), mode='bilinear', align_corners=True)
 
-        feat5 = self.avg(r_x4)
+        feat2 = self.featurefusion2(x2_x4)
+        feat2 = self.avg3(feat2)
+        feat2 = F.interpolate(feat2, size=(H, W), mode='bilinear', align_corners=True)
+
+        feat3 = self.featurefusion3(x3_x4)
+        feat3 = self.avg4(feat3)
+        feat3 = F.interpolate(feat3, size=(H, W), mode='bilinear', align_corners=True)
+
+        feat4 = self.featurefusion4(x4)
+        # feat4 = self.avg5(feat4)
+        # feat4 = F.interpolate(feat4, size=(H, W), mode='bilinear', align_corners=True)
+
+        feat5 = self.avg1(r_x4)
         feat5 = self.featurefusion5(feat5)
         feat5 = F.interpolate(feat5, size=(H, W), mode='bilinear', align_corners=True)
-
-        feat = torch.cat((feat1, feat2, feat3, feat4, feat5), dim=1)
+        # feat = torch.cat((feat1, feat2, feat3, feat4, feat5), dim=1)
+        feat = torch.cat((feat4, feat1, feat2, feat3, feat5), dim=1)
 
         out = self.conv_out(feat)
 

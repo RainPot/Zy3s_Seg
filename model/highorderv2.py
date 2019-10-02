@@ -38,19 +38,20 @@ class ConvBNReLU(nn.Module):
 class Kernel_Representation(nn.Module):
     def __init__(self):
         super(Kernel_Representation, self).__init__()
-        self.x1_order3_1 = Kernel_Calculate(256, 512)
-        self.x1_order3_2 = Kernel_Calculate(256, 512)
-        self.x1_order3_3 = Kernel_Calculate(256, 512)
+        self.x1_order3_1 = Kernel_Calculate(256, 256)
+        self.x1_order3_2 = Kernel_Calculate(256, 256)
+        self.x1_order3_3 = Kernel_Calculate(256, 256)
 
-        self.x2_order2_1 = Kernel_Calculate(512, 512)
-        self.x2_order2_2 = Kernel_Calculate(512, 512)
+        self.x2_order3_1 = Kernel_Calculate(512, 256)
+        self.x2_order3_2 = Kernel_Calculate(512, 256)
+        self.x2_order3_3 = Kernel_Calculate(512, 256)
 
-        self.x3_order1_1 = Kernel_Calculate(1024, 512)
+        self.x3_order3_1 = Kernel_Calculate(1024, 256)
+        self.x3_order3_2 = Kernel_Calculate(1024, 256)
+        self.x3_order3_3 = Kernel_Calculate(1024, 256)
 
-        self.x4_order3_1 = Kernel_Calculate(2048, 512)
-        self.x4_order3_2 = Kernel_Calculate(2048, 512)
-        self.x4_order3_3 = Kernel_Calculate(2048, 512)
-        self.x4_final = Kernel_Calculate(512, 1024)
+        self.x4_order1_1 = Kernel_Calculate(2048, 1024)
+
 
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
@@ -62,24 +63,23 @@ class Kernel_Representation(nn.Module):
         x1 = x1_order3_1 * x1_order3_2 * x1_order3_3
         x1 = self.maxpool(self.maxpool(x1))
 
-        x2_order2_1 = self.x2_order2_1(x2)
-        x2_order2_2 = self.x2_order2_2(x2)
-        x2 = x2_order2_1 * x2_order2_2
+        x2_order3_1 = self.x2_order3_1(x2)
+        x2_order3_2 = self.x2_order3_2(x2)
+        x2_order3_3 = self.x2_order3_3(x2)
+        x2 = x2_order3_1 * x2_order3_2 * x2_order3_3
         x2 = self.maxpool(x2)
 
-        x3 = self.x3_order1_1(x3)
+        x3_order3_1 = self.x3_order3_1(x3)
+        x3_order3_2 = self.x3_order3_2(x3)
+        x3_order3_3 = self.x3_order3_3(x3)
+        x3 = x3_order3_1 * x3_order3_2 * x3_order3_3
 
-        x4_order3_1 = self.x4_order3_1(x4)
-        x4_order3_2 = self.x4_order3_2(x4)
-        x4_order3_3 = self.x4_order3_3(x4)
-        x4 = x4_order3_1 * x4_order3_2 * x4_order3_3
-
+        x4 = self.x4_order1_1(x4)
 
         x1_x4 = torch.cat((x4, x1), dim=1)
         x2_x4 = torch.cat((x4, x2), dim=1)
         x3_x4 = torch.cat((x4, x3), dim=1)
 
-        x4 = self.x4_final(x4)
 
         return x1_x4, x2_x4, x3_x4, x4
 
@@ -88,9 +88,9 @@ class Feature_Fusion(nn.Module):
     def __init__(self):
         super(Feature_Fusion, self).__init__()
 
-        self.featurefusion1 = ConvBNReLU(1024, 256, padding=18, dilation=18)
-        self.featurefusion2 = ConvBNReLU(1024, 256, padding=12, dilation=12)
-        self.featurefusion3 = ConvBNReLU(1024, 256, padding=6, dilation=6)
+        self.featurefusion1 = ConvBNReLU(1280, 256, padding=18, dilation=18)
+        self.featurefusion2 = ConvBNReLU(1280, 256, padding=12, dilation=12)
+        self.featurefusion3 = ConvBNReLU(1280, 256, padding=6, dilation=6)
         self.featurefusion4 = ConvBNReLU(1024, 256, padding=1, dilation=1)
 
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
@@ -135,6 +135,7 @@ class HighOrder(nn.Module):
         )
 
         self.conv_out = nn.Conv2d(256, n_classes, kernel_size=1, bias=False)
+
 
         self.relu = nn.ReLU(inplace=True)
 
