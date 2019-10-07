@@ -8,6 +8,7 @@ from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
+from model.highorderv6 import HighOrder
 from metric import fast_hist, cal_scores
 import config
 import argparse
@@ -43,14 +44,15 @@ def eval(args):
                             pin_memory=True,
                             drop_last=False)
 
-    net = Origin_Res()
+    # net = Origin_Res()
     # net = Deeplab_v3plus()
+    net = HighOrder(19)
     net.cuda()
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./Res1500.pth'))
+    net.load_state_dict(torch.load('./Res60000.pth'))
     net.eval()
 
     data = iter(dataloader)

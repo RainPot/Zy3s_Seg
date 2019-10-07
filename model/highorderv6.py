@@ -35,41 +35,65 @@ class ConvBNReLU(nn.Module):
 
 
 
-class Feature_Fusion(nn.Module):
+class Kernel_Representation(nn.Module):
     def __init__(self):
-        super(Feature_Fusion, self).__init__()
+        super(Kernel_Representation, self).__init__()
+        self.x1_order3_1 = Kernel_Calculate(256, 512)
+        self.x1_order3_2 = Kernel_Calculate(256, 512)
+        self.x1_order3_3 = Kernel_Calculate(256, 512)
 
-        self.x4_conv = ConvBNReLU(2048, 1536, kernel_size=1, stride=1, padding=0)
-        self.x3_conv = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
-        self.x2_conv = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
-        self.x1_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
+        self.x2_order2_1 = Kernel_Calculate(512, 512)
+        self.x2_order2_2 = Kernel_Calculate(512, 512)
+
+        self.x3_order1_1 = Kernel_Calculate(1024, 512)
+
+        self.x4_order3_1 = Kernel_Calculate(2048, 512)
+        self.x4_order3_2 = Kernel_Calculate(2048, 512)
+        self.x4_order3_3 = Kernel_Calculate(2048, 512)
+        self.x4_final = Kernel_Calculate(512, 1024)
 
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
 
     def forward(self, x1, x2, x3, x4):
+        x1_order3_1 = self.x1_order3_1(x1)
+        x1_order3_2 = self.x1_order3_2(x1)
+        x1_order3_3 = self.x1_order3_3(x1)
+        x1 = x1_order3_1 * x1_order3_2 * x1_order3_3
+        x1 = self.maxpool(self.maxpool(x1))
 
-        x4_c = self.x4_conv(x4)
-        x3_c = self.x3_conv(x3)
-        x2_c = self.maxpool(self.x2_conv(x2))
-        x1_c = self.maxpool(self.maxpool(self.x1_conv(x1)))
+        x2_order2_1 = self.x2_order2_1(x2)
+        x2_order2_2 = self.x2_order2_2(x2)
+        x2 = x2_order2_1 * x2_order2_2
+        x2 = self.maxpool(x2)
 
-        x1_x4 = torch.cat((x4_c, x1_c), dim=1)
-        x2_x4 = torch.cat((x4_c, x2_c), dim=1)
-        x3_x4 = torch.cat((x4_c, x3_c), dim=1)
+        x3 = self.x3_order1_1(x3)
 
+        x4_order3_1 = self.x4_order3_1(x4)
+        x4_order3_2 = self.x4_order3_2(x4)
+        x4_order3_3 = self.x4_order3_3(x4)
+        x4_order3 = x4_order3_1 * x4_order3_2 * x4_order3_3
+        x4_order2 = x4_order3_1 * x4_order3_2
+
+
+
+        x1_x4 = torch.cat((x4_order3, x1), dim=1)
+        x2_x4 = torch.cat((x4_order2, x2), dim=1)
+        x3_x4 = torch.cat((x4_order3_1, x3), dim=1)
+
+        x4 = self.x4_final(x4_order3)
 
         return x1_x4, x2_x4, x3_x4, x4
 
 
-class ASPP(nn.Module):
+class Feature_Fusion(nn.Module):
     def __init__(self):
-        super(ASPP, self).__init__()
+        super(Feature_Fusion, self).__init__()
 
-        self.featurefusion1 = ConvBNReLU(2048, 256, padding=18, dilation=18)
-        self.featurefusion2 = ConvBNReLU(2048, 256, padding=12, dilation=12)
-        self.featurefusion3 = ConvBNReLU(2048, 256, padding=6, dilation=6)
-        self.featurefusion4 = ConvBNReLU(2048, 256, padding=1, dilation=1)
+        self.featurefusion1 = ConvBNReLU(1024, 256, padding=18, dilation=18)
+        self.featurefusion2 = ConvBNReLU(1024, 256, padding=12, dilation=12)
+        self.featurefusion3 = ConvBNReLU(1024, 256, padding=6, dilation=6)
+        self.featurefusion4 = ConvBNReLU(1024, 256, padding=1, dilation=1)
 
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.featurefusion5 = ConvBNReLU(2048, 256, kernel_size=1, stride=1, padding=0)
@@ -77,7 +101,7 @@ class ASPP(nn.Module):
         self.conv_out = ConvBNReLU(256 * 5, 256, kernel_size=1, stride=1, padding=0)
 
 
-    def forward(self, x1_x4, x2_x4, x3_x4, x4):
+    def forward(self, x1_x4, x2_x4, x3_x4, x4, r_x4):
         H, W = x4.size()[2:]
 
         feat1 = self.featurefusion1(x1_x4)
@@ -85,7 +109,7 @@ class ASPP(nn.Module):
         feat3 = self.featurefusion3(x3_x4)
         feat4 = self.featurefusion4(x4)
 
-        feat5 = self.avg(x4)
+        feat5 = self.avg(r_x4)
         feat5 = self.featurefusion5(feat5)
         feat5 = F.interpolate(feat5, size=(H, W), mode='bilinear', align_corners=True)
 
@@ -101,8 +125,8 @@ class HighOrder(nn.Module):
         super(HighOrder, self).__init__()
 
         self.backbone = resnet(101, 16)
+        self.kernelrep = Kernel_Representation()
         self.featurefusion = Feature_Fusion()
-        self.ASPP = ASPP()
 
         self.conv_low = nn.Conv2d(256, 48, kernel_size=1, stride=1, padding=0)
         self.bn1 = nn.BatchNorm2d(48)
@@ -119,8 +143,8 @@ class HighOrder(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, r_x4 = self.backbone(x)
-        x1_x4, x2_x4, x3_x4, x4 = self.featurefusion(x1, x2, x3, r_x4)
-        feat = self.ASPP(x1_x4, x2_x4, x3_x4, x4)
+        x1_x4, x2_x4, x3_x4, x4 = self.kernelrep(x1, x2, x3, r_x4)
+        feat = self.featurefusion(x1_x4, x2_x4, x3_x4, x4, r_x4)
 
         H, W = x1.size()[2:]
         low = self.bn1(self.conv_low(x1))
