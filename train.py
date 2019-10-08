@@ -9,7 +9,7 @@ from torch.optim import SGD
 from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-from model.highorderv6 import HighOrder
+from model.highorderv7 import HighOrder
 import argparse
 import config
 from pallete import get_mask_pallete
