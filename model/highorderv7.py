@@ -55,8 +55,10 @@ class Kernel_Representation(nn.Module):
 
 
     def forward(self, x1, x2, x3, x4):
-        x1 = self.x1_down(self.maxpool(self.maxpool(x1)))
-        x2 = self.x2_down(self.maxpool(x2))
+        # x1 = self.x1_down(self.maxpool(self.maxpool(x1)))
+        x1 = self.maxpool(self.maxpool(self.x1_down(x1)))
+        # x2 = self.x2_down(self.maxpool(x2))
+        x2 = self.maxpool(self.x2_down(x2))
         x3 = self.x3_down(x3)
 
 

@@ -41,18 +41,22 @@ class Kernel_Representation(nn.Module):
         self.x1_order3_1 = Kernel_Calculate(256, 512)
         self.x1_order3_2 = Kernel_Calculate(256, 512)
         self.x1_order3_3 = Kernel_Calculate(256, 512)
+        self.x1_conv = Kernel_Calculate(512, 512)
 
         self.x2_order3_1 = Kernel_Calculate(512, 512)
         self.x2_order3_2 = Kernel_Calculate(512, 512)
         self.x2_order3_3 = Kernel_Calculate(512, 512)
+        self.x2_conv = Kernel_Calculate(512, 512)
 
         self.x3_order3_1 = Kernel_Calculate(1024, 512)
         self.x3_order3_2 = Kernel_Calculate(1024, 512)
         self.x3_order3_3 = Kernel_Calculate(1024, 512)
+        self.x3_conv = Kernel_Calculate(512, 512)
 
         self.x4_order3_1 = Kernel_Calculate(2048, 512)
         self.x4_order3_2 = Kernel_Calculate(2048, 512)
         self.x4_order3_3 = Kernel_Calculate(2048, 512)
+        self.x4_conv = Kernel_Calculate(512, 512)
         self.x4_final = Kernel_Calculate(512, 1024)
 
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -64,23 +68,27 @@ class Kernel_Representation(nn.Module):
         x1_order3_3 = self.x1_order3_3(x1)
         x1 = x1_order3_1 * x1_order3_2 * x1_order3_3
         x1 = self.maxpool(self.maxpool(x1))
+        x1 = self.x1_conv(x1)
 
         x2_order3_1 = self.x2_order3_1(x2)
         x2_order3_2 = self.x2_order3_2(x2)
         x2_order3_3 = self.x2_order3_3(x2)
         x2 = x2_order3_1 * x2_order3_2 * x2_order3_3
         x2 = self.maxpool(x2)
+        x2 = self.x2_conv(x2)
 
         x3_order3_1 = self.x3_order3_1(x3)
         x3_order3_2 = self.x3_order3_2(x3)
         x3_order3_3 = self.x3_order3_3(x3)
         x3 = x3_order3_1 * x3_order3_2 * x3_order3_3
+        x3 = self.x3_conv(x3)
 
 
         x4_order3_1 = self.x4_order3_1(x4)
         x4_order3_2 = self.x4_order3_2(x4)
         x4_order3_3 = self.x4_order3_3(x4)
         x4 = x4_order3_1 * x4_order3_2 * x4_order3_3
+        x4 = self.x4_conv(x4)
 
 
         x1_x4 = torch.cat((x4, x1), dim=1)
@@ -110,9 +118,9 @@ class Feature_Fusion(nn.Module):
     def forward(self, x1_x4, x2_x4, x3_x4, x4, r_x4):
         H, W = x4.size()[2:]
 
-        feat1 = self.featurefusion1(x1_x4)
+        feat1 = self.featurefusion1(x3_x4)
         feat2 = self.featurefusion2(x2_x4)
-        feat3 = self.featurefusion3(x3_x4)
+        feat3 = self.featurefusion3(x1_x4)
         feat4 = self.featurefusion4(x4)
 
         feat5 = self.avg(r_x4)
