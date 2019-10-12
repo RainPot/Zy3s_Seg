@@ -9,7 +9,7 @@ from torch.optim import SGD
 from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-from model.highorderv5 import HighOrder
+from model.highorderv9 import HighOrder
 import argparse
 import config
 from pallete import get_mask_pallete
@@ -182,7 +182,7 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 1000 == 0 and dist.get_rank() == 0:
+        if (i+1) % 100 == 0 and (i+1) >= 57500 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 

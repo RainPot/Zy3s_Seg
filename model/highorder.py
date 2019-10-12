@@ -102,9 +102,9 @@ class Feature_Fusion(nn.Module):
     def forward(self, x1_x4, x2_x4, x3_x4, x4, r_x4):
         H, W = x4.size()[2:]
 
-        feat1 = self.featurefusion1(x3_x4)
+        feat1 = self.featurefusion1(x1_x4)
         feat2 = self.featurefusion2(x2_x4)
-        feat3 = self.featurefusion3(x1_x4)
+        feat3 = self.featurefusion3(x3_x4)
         feat4 = self.featurefusion4(x4)
 
         feat5 = self.avg(r_x4)
