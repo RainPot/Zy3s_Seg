@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-from model.highorderv9 import HighOrder
+from model.highorderv8 import HighOrder
 from metric import fast_hist, cal_scores
 import config
 import argparse

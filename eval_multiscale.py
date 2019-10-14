@@ -6,7 +6,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
-from model.highorder import HighOrder
+from model.highorderv8 import HighOrder
 from metric import fast_hist, cal_scores
 import config
 import argparse
@@ -51,8 +51,59 @@ def eval(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load(''))
+    net.load_state_dict(torch.load('./Res59800.pth'))
     net.eval()
+    
+    data = iter(dataloader)
+    num = 0
+    hist = 0
+    with torch.no_grad():
+        while 1:
+            try:
+                image, label = next(data)
+            except:
+                break
+
+            N, _, H, W = image.size()
+            preds = torch.zeros((N, 19, H, W))
+            preds = preds.cuda()
+            for scale in config.eval_scales:
+                new_hw = [int(H * scale), int(W * scale)]
+                image = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
+                image = image.cuda()
+                label = label.cuda()
+                label = torch.squeeze(label, 1)
+                output = net(image)
+                output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
+                preds += output
+                if config.eval_flip:
+                    output = net(torch.flip(image, dims=(3,)))
+                    output = torch.flip(output, dims=(3,))
+                    output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
+                    preds += output
+            pred = preds.max(dim=1)[1]
+            hist_once = fast_hist(label, pred)
+            hist = torch.tensor(hist).cuda()
+            hist = hist + hist_once
+            dist.all_reduce(hist, dist.ReduceOp.SUM)
+            num += 1
+            if num % 5 ==0:
+                print('iter: {}'.format(num))
+
+        hist = hist.cpu().numpy().astype(np.float32)
+        miou = cal_scores(hist)
+
+    print('miou = {}'.format(miou))
+
+
+if __name__ == '__main__':
+    args = parse_args()
+    eval(args)
+
+
+
+
+
 
 
     
