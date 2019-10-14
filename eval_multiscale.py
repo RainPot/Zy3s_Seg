@@ -24,6 +24,9 @@ def parse_args():
     )
     return parse.parse_args()
 
+
+
+
 def eval(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
@@ -64,20 +67,20 @@ def eval(args):
             except:
                 break
 
+            image = image.cuda()
+            label = label.cuda()
+            label = torch.squeeze(label, 1)
             N, _, H, W = image.size()
             preds = torch.zeros((N, 19, H, W))
             preds = preds.cuda()
             for scale in config.eval_scales:
                 new_hw = [int(H * scale), int(W * scale)]
-                image = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
-                image = image.cuda()
-                label = label.cuda()
-                label = torch.squeeze(label, 1)
-                output = net(image)
+                image_change = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
+                output = net(image_change)
                 output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                 preds += output
                 if config.eval_flip:
-                    output = net(torch.flip(image, dims=(3,)))
+                    output = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                     preds += output
