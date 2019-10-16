@@ -1,19 +1,19 @@
 {
-    "jobName": "8c1e2_27283390",
+    "jobName": "8cOHEM768batchsize4init_20527625",
     "image": "192.168.193.253:5000/pytorch:v1.2.0",
     "authFile": "",
     "dataDir": "",
     "outputDir": "",
     "codeDir": "$PAI_DEFAULT_FS_URI/Users/$PAI_USER_NAME/$PAI_USER_NAME~$PAI_JOB_NAME",
     "virtualCluster": "default",
-    "gpuType": "geforce2080tix4",
+    "gpuType": "geforce1080ti",
     "retryCount": 0,
     "taskRoles": [
         {
             "name": "task",
             "taskNumber": 1,
             "cpuNumber": 13,
-            "memoryMB": 13000,
+            "memoryMB": 15000,
             "shmMB": 5000,
             "gpuNumber": 2,
             "command": "cd $PAI_JOB_NAME && bash setup.sh && sleep infinity"

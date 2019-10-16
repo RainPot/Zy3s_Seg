@@ -12,6 +12,14 @@ class Kernel_Calculate(nn.Module):
         self.bn = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
 
+        self.init_weight()
+
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
@@ -26,6 +34,14 @@ class ConvBNReLU(nn.Module):
                               padding=padding, dilation=dilation, bias=True)
         self.bn = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU(inplace=True)
+        self.init_weight()
+
+
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
     def forward(self, x):
         x = self.conv(x)
@@ -47,6 +63,16 @@ class Three_Order_Module(nn.Module):
         self.order1_1 = Kernel_Calculate(in_channels, 512)
 
         self.conv_down = Kernel_Calculate(512 * 3, out_channels)
+
+        self.init_weight()
+
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+
+
 
     def forward(self, x):
         x_order3_1 = self.order3_1(x)
@@ -78,6 +104,14 @@ class Kernel_Representation(nn.Module):
         self.x4_conv = ConvBNReLU(1536, 2048, kernel_size=1, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
+        self.init_weight()
+
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
+
 
     def forward(self, x1, x2, x3, x4):
         x1_order3 = self.x1_order3(self.maxpool(self.maxpool(x1)))
@@ -108,6 +142,14 @@ class Feature_Fusion(nn.Module):
         self.featurefusion5 = ConvBNReLU(2048, 256, kernel_size=1, stride=1, padding=0)
 
         self.conv_out = ConvBNReLU(256 * 5, 256, kernel_size=1, stride=1, padding=0)
+
+        self.init_weight()
+
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
 
     def forward(self, x1_x4, x2_x4, x3_x4, x4):
@@ -148,6 +190,14 @@ class HighOrder(nn.Module):
         self.conv_out = nn.Conv2d(256, n_classes, kernel_size=1, bias=False)
 
         self.relu = nn.ReLU(inplace=True)
+
+        self.init_weight()
+
+    def init_weight(self):
+        for ly in self.children():
+            if isinstance(ly, nn.Conv2d):
+                nn.init.kaiming_normal_(ly.weight, a=1)
+                if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
 
     def forward(self, x):

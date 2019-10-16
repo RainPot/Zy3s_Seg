@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import os
-# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
@@ -40,36 +40,6 @@ def parse_args():
     return parse.parse_args()
 
 
-def get_params(model, key):
-    if key == '1x':
-        for m in model.named_modules():
-            if isinstance(m[1], nn.Conv2d):
-                print('nn.Conv2d' + str(m[1]))
-                yield m[1].weight
-
-    if key == '1y':
-        for m in model.named_modules():
-            if isinstance(m[1], nn.SyncBatchNorm):
-                if m[1].weight is not None:
-                    print('nn.BatchNorm2d' + str(m[1]))
-                    yield m[1].weight
-
-    if key == '2x':
-        for m in model.named_modules():
-            if isinstance(m[1], nn.Conv2d) or isinstance(m[1], nn.SyncBatchNorm):
-                if m[1].bias is not None:
-                    print('3' + str(m[1]))
-                    yield m[1].bias
-
-def poly_lr_scheduler(opt, init_lr, iter, lr_decay_iter, max_iter, power):
-    if iter % lr_decay_iter or iter > max_iter:
-        return None
-    new_lr = init_lr * (1 - float(iter) / max_iter) ** power
-    opt.param_groups[0]['lr'] = 1 * new_lr
-    opt.param_groups[1]['lr'] = 1 * new_lr
-    opt.param_groups[2]['lr'] = 2 * new_lr
-
-
 
 def train(args):
     torch.cuda.set_device(args.local_rank)
@@ -77,8 +47,8 @@ def train(args):
         backend='nccl',
         init_method='tcp://127.0.0.1:{}'.format(config.port),
         world_size=torch.cuda.device_count(),
-        rank=args.local_rank
-        # rank=0
+        # rank=args.local_rank
+        rank=0
     )
 
     dataset = CityScapes(mode='train')
