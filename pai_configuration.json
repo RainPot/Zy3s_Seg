@@ -1,5 +1,5 @@
 {
-    "jobName": "8cOHEM768batchsize4init_20527625",
+    "jobName": "8cOHEM768batchsize4init_13794472",
     "image": "192.168.193.253:5000/pytorch:v1.2.0",
     "authFile": "",
     "dataDir": "",

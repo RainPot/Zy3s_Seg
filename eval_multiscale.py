@@ -78,11 +78,13 @@ def eval(args):
                 image_change = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
                 output = net(image_change)
                 output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
+                output = F.softmax(output, 1)
                 preds += output
                 if config.eval_flip:
                     output = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
+                    output = F.softmax(output ,1)
                     preds += output
             pred = preds.max(dim=1)[1]
             hist_once = fast_hist(label, pred)

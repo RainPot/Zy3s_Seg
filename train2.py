@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
@@ -47,8 +47,8 @@ def train(args):
         backend='nccl',
         init_method='tcp://127.0.0.1:{}'.format(config.port),
         world_size=torch.cuda.device_count(),
-        # rank=args.local_rank
-        rank=0
+        rank=args.local_rank
+        # rank=0
     )
 
     dataset = CityScapes(mode='train')
