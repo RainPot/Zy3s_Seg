@@ -6,7 +6,7 @@ import torch.nn.functional as F
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from torch.optim import SGD
-from datasets.cityscapes import CityScapes
+from datasets.cityscapes import CityScapes, CityScapes_trainval
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.highorderv8 import HighOrder
@@ -51,7 +51,7 @@ def train(args):
         # rank=0
     )
 
-    dataset = CityScapes(mode='train')
+    dataset = CityScapes_trainval(mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(dataset,
                             batch_size=config.imgs_per_gpu,
@@ -61,7 +61,7 @@ def train(args):
                             pin_memory=True,
                             drop_last=True)
 
-
+    print(dataloader.__len__())
     # net = Origin_Res()
     net = HighOrder(19)
     # for i in net.named_modules():
@@ -98,12 +98,12 @@ def train(args):
     for i in range(config.max_iter):
         start = time.time()
         try:
-            image, label = next(data)
+            image, label, name = next(data)
         except:
             n_epoch += 1
             sampler.set_epoch(n_epoch)
             data = iter(dataloader)
-            image, label = next(data)
+            image, label, name = next(data)
 
 
         image = image.cuda()
@@ -137,7 +137,7 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 100 == 0 and (i+1) >= 57500 and dist.get_rank() == 0:
+        if (i+1) % 100 == 0 and (i+1) >= 59000 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 

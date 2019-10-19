@@ -61,7 +61,7 @@ def eval(args):
     with torch.no_grad():
         while 1:
             try:
-                image,label = next(data)
+                image, label, name = next(data)
             except:
                 break
             image = image.cuda()

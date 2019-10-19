@@ -63,7 +63,7 @@ def eval(args):
     with torch.no_grad():
         while 1:
             try:
-                image, label = next(data)
+                image, label, name = next(data)
             except:
                 break
 
@@ -84,7 +84,7 @@ def eval(args):
                     output = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
-                    output = F.softmax(output ,1)
+                    output = F.softmax(output,1)
                     preds += output
             pred = preds.max(dim=1)[1]
             hist_once = fast_hist(label, pred)
