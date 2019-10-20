@@ -13,7 +13,6 @@ pai.submit()
 
 #pytorch:v0.4.0
 
-
 #2080test   /bin/bash /root/mount.sh && cd $PAI_JOB_NAME && python3 evaluate.py --restore-from /root/data/models/zhangyu/CS_scenes_60000.pth --gpu 0 --recurrence 2
 
 #/bin/bash /root/mount.sh && cd $PAI_JOB_NAME && cd experiments && python3 train.py

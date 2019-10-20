@@ -6,9 +6,11 @@ contrast = 0.5
 saturation = 0.5
 scales = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
 crop_size = (864, 864)
+# crop_size = (512, 512)
 imgs_per_gpu = 2
-max_iter = 60000
+max_iter = 70000
 classes = 19
+# classes = 150
 
 
 warmup_steps = 1000

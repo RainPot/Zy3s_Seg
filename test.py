@@ -134,6 +134,7 @@ def eval(args):
                 save_img.putpalette(palette)
                 save_img.save(os.path.join('./results/', name[i] + '.png'))
 
+            num += 1
             if num % 5 == 0:
                 print('iter: {}'.format(num))
 

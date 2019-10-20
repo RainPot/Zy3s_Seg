@@ -7,6 +7,7 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader
 from torch.optim import SGD
 from datasets.cityscapes import CityScapes, CityScapes_trainval
+from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.highorderv8 import HighOrder
@@ -51,7 +52,8 @@ def train(args):
         # rank=0
     )
 
-    dataset = CityScapes_trainval(mode='train')
+    # dataset = CityScapes_trainval(mode='train')
+    dataset = ADE20K(mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(dataset,
                             batch_size=config.imgs_per_gpu,
@@ -63,7 +65,7 @@ def train(args):
 
     print(dataloader.__len__())
     # net = Origin_Res()
-    net = HighOrder(19)
+    net = HighOrder(config.classes)
     # for i in net.named_modules():
     #     print(i)
     # net = Deeplab_v3plus()
@@ -77,7 +79,7 @@ def train(args):
 
 
     n_min = config.imgs_per_gpu * config.crop_size[0] * config.crop_size[1] // 16
-    criteria = OhemCELoss(thresh=config.ohem_thresh, n_min=n_min).cuda()
+    criteria = OhemCELoss(thresh=config.ohem_thresh, n_min=n_min, ignore_lb=-1).cuda()
 
     optimizer = Optimizer(
         net,
@@ -110,6 +112,7 @@ def train(args):
         image_see = image.cpu().numpy()
         label = label.cuda()
         label = torch.squeeze(label, 1)
+
         label_see = label.cpu().numpy()
 
         output = net(image)
@@ -137,7 +140,7 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 100 == 0 and (i+1) >= 59000 and dist.get_rank() == 0:
+        if (i+1) % 100 == 0 and (i+1) >= 69000 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 
