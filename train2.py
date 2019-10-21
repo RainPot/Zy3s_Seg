@@ -79,7 +79,7 @@ def train(args):
 
 
     n_min = config.imgs_per_gpu * config.crop_size[0] * config.crop_size[1] // 16
-    criteria = OhemCELoss(thresh=config.ohem_thresh, n_min=n_min, ignore_lb=-1).cuda()
+    criteria = OhemCELoss(thresh=config.ohem_thresh, n_min=n_min, ignore_lb=config.ignore_label).cuda()
 
     optimizer = Optimizer(
         net,
@@ -140,7 +140,7 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 100 == 0 and (i+1) >= 69000 and dist.get_rank() == 0:
+        if (i+1) % 100 == 0 and (i+1) >= 179000 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 
