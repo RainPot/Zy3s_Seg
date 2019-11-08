@@ -10,7 +10,7 @@ import torchvision
 
 from backbone.resnet_old import resnet101
 from backbone.resnet import resnet
-import config
+import config_CS
 
 
 
@@ -113,7 +113,7 @@ class Deeplab_v3plus(nn.Module):
         super(Deeplab_v3plus, self).__init__()
         self.backbone = resnet(101, 16)
         self.aspp = ASPP(in_chan=2048, out_chan=256, with_gp=False)
-        self.decoder = Decoder(config.classes, low_chan=256)
+        self.decoder = Decoder(config_CS.classes, low_chan=256)
         #  self.backbone = Darknet53(stride=16)
         #  self.aspp = ASPP(in_chan=1024, out_chan=256, with_gp=False)
         #  self.decoder = Decoder(cfg.n_classes, low_chan=128)

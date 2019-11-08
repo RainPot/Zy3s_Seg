@@ -10,7 +10,7 @@ import os
 from PIL import Image
 import numpy as np
 import json
-import config as cfg
+import config_ADE20K as cfg
 from datasets.transform import *
 
 
@@ -66,7 +66,7 @@ class ADE20K(Dataset):
         impth = self.imgnames[idx]
         lbpth = self.lbnames[idx]
         name = self.name[idx]
-        img = Image.open(impth)
+        img = Image.open(impth).convert('RGB')
         label = Image.open(lbpth)
         if self.mode == 'train':
             im_lb = dict(im = img, lb = label)

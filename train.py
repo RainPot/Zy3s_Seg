@@ -11,7 +11,7 @@ from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.highorderv8 import HighOrder
 import argparse
-import config
+import config_CS
 from pallete import get_mask_pallete
 import time
 
@@ -73,7 +73,7 @@ def train(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:{}'.format(config.port),
+        init_method='tcp://127.0.0.1:{}'.format(config_CS.port),
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
@@ -110,21 +110,21 @@ def train(args):
         params=[
             {
                 'params': get_params(net, key='1x'),
-                'lr': 1 * config.LR,
-                'weight_decay': config.WEIGHT_DECAY,
+                'lr': 1 * config_CS.LR,
+                'weight_decay': config_CS.WEIGHT_DECAY,
             },
             {
                 'params': get_params(net, key='1y'),
-                'lr': 1 * config.LR,
+                'lr': 1 * config_CS.LR,
                 'weight_decay': 0,
             },
             {
                 'params': get_params(net, key='2x'),
-                'lr': 2 * config.LR,
+                'lr': 2 * config_CS.LR,
                 'weight_decay': 0.0
             }
         ],
-        momentum=config.LR_MOM
+        momentum=config_CS.LR_MOM
     )
 
 
@@ -132,7 +132,7 @@ def train(args):
     n_epoch = 0
 
     data = iter(dataloader)
-    for i in range(config.max_iter):
+    for i in range(config_CS.max_iter):
         start = time.time()
         try:
             image, label = next(data)
@@ -144,11 +144,11 @@ def train(args):
 
         poly_lr_scheduler(
             opt=optimizer,
-            init_lr=config.LR,
+            init_lr=config_CS.LR,
             iter=i+1,
-            lr_decay_iter=config.LR_DECAY,
-            max_iter=config.max_iter,
-            power=config.POLY_POWER
+            lr_decay_iter=config_CS.LR_DECAY,
+            max_iter=config_CS.max_iter,
+            power=config_CS.POLY_POWER
         )
 
         image = image.cuda()
@@ -175,7 +175,7 @@ def train(args):
         if (i+1) % 100 == 0 and dist.get_rank() == 0:
             end = time.time()
             once_time = end - start
-            remaining_step = config.max_iter - i
+            remaining_step = config_CS.max_iter - i
             remaining_time = once_time * remaining_step
             m, s = divmod(remaining_time, 60)
             h, m = divmod(m, 60)

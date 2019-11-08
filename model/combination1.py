@@ -71,7 +71,7 @@ class Three_Order_Module(nn.Module):
             if isinstance(ly, nn.Conv2d):
                 nn.init.kaiming_normal_(ly.weight, a=1)
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-
+    #
 
 
     def forward(self, x):
@@ -96,10 +96,15 @@ class Three_Order_Module(nn.Module):
 class Kernel_Representation(nn.Module):
     def __init__(self):
         super(Kernel_Representation, self).__init__()
-        self.x1_order3 = Three_Order_Module(256, 512)
-        self.x2_order3 = Three_Order_Module(512, 512)
-        self.x3_order3 = Three_Order_Module(1024, 512)
-        self.x4_order3 = Three_Order_Module(2048, 1536)
+        # self.x1_order3 = Three_Order_Module(256, 512)
+        self.x1_order3 = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
+        # self.x2_order3 = Three_Order_Module(512, 512)
+        self.x2_order3 = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
+        # self.x3_order3 = Three_Order_Module(1024, 512)
+        self.x3_order3 = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
+
+        # self.x4_order3 = Three_Order_Module(2048, 1536)
+        self.x4_order3 = ConvBNReLU(2048, 1536, kernel_size=1, stride=1, padding=0)
 
         self.x4_conv = ConvBNReLU(1536, 2048, kernel_size=1, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -150,7 +155,7 @@ class Feature_Fusion(nn.Module):
             if isinstance(ly, nn.Conv2d):
                 nn.init.kaiming_normal_(ly.weight, a=1)
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-
+    #
 
     def forward(self, x1_x4, x2_x4, x3_x4, x4):
         H, W = x4.size()[2:]
@@ -198,11 +203,11 @@ class HighOrder(nn.Module):
             if isinstance(ly, nn.Conv2d):
                 nn.init.kaiming_normal_(ly.weight, a=1)
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-
-
+    #
+    #
     def forward(self, x):
         x1, x2, x3, r_x4 = self.backbone(x)
-        x1_x4, x2_x4, x3_x4, x4= self.kernelrep(x1, x2, x3, r_x4)
+        x1_x4, x2_x4, x3_x4, x4 = self.kernelrep(x1, x2, x3, r_x4)
         feat = self.featurefusion(x1_x4, x2_x4, x3_x4, x4)
 
         H, W = x1.size()[2:]

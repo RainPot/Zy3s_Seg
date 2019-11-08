@@ -10,7 +10,7 @@ import os
 from PIL import Image
 import numpy as np
 import json
-import config as cfg
+import config_CS as cfg
 from datasets.transform import *
 
 

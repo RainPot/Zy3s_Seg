@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes_test
 from model.highorderv8 import HighOrder
 from metric import fast_hist, cal_scores
-import config
+import config_CS
 import argparse
 import numpy as np
 from PIL import Image
@@ -72,7 +72,7 @@ def eval(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:{}'.format(config.port),
+        init_method='tcp://127.0.0.1:{}'.format(config_CS.port),
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
@@ -96,7 +96,7 @@ def eval(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./Res60000.pth'))
+    net.load_state_dict(torch.load('./Res41000.pth'))
     net.eval()
 
     data = iter(dataloader)
@@ -114,14 +114,14 @@ def eval(args):
             N, _, H, W = image.size()
             preds = torch.zeros((N, 19, H, W))
             preds = preds.cuda()
-            for scale in config.eval_scales:
+            for scale in config_CS.eval_scales:
                 new_hw = [int(H * scale), int(W * scale)]
                 image_change = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
                 output = net(image_change)
                 output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                 output = F.softmax(output, 1)
                 preds += output
-                if config.eval_flip:
+                if config_CS.eval_flip:
                     output = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)

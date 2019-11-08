@@ -53,16 +53,15 @@ class Three_Order_Module(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Three_Order_Module, self).__init__()
 
-        self.order3_1 = Kernel_Calculate(in_channels, 512)
-        self.order3_2 = Kernel_Calculate(in_channels, 512)
-        self.order3_3 = Kernel_Calculate(in_channels, 512)
+        self.order3_1 = Kernel_Calculate(in_channels, out_channels)
+        self.order3_2 = Kernel_Calculate(in_channels, out_channels)
+        self.order3_3 = Kernel_Calculate(in_channels, out_channels)
 
-        self.order2_1 = Kernel_Calculate(in_channels, 512)
-        self.order2_2 = Kernel_Calculate(in_channels, 512)
+        self.order2_1 = Kernel_Calculate(in_channels, out_channels)
+        self.order2_2 = Kernel_Calculate(in_channels, out_channels)
 
-        self.order1_1 = Kernel_Calculate(in_channels, 512)
+        self.order1_1 = Kernel_Calculate(in_channels, out_channels)
 
-        self.conv_down = Kernel_Calculate(512 * 3, out_channels)
 
         self.init_weight()
 
@@ -86,22 +85,23 @@ class Three_Order_Module(nn.Module):
 
         x_order1 = self.order1_1(x)
 
-        x = torch.cat((x_order1, x_order2, x_order3), dim=1)
-        x = self.conv_down(x)
 
-        return x
+        return x_order1, x_order2, x_order3
 
 
 
 class Kernel_Representation(nn.Module):
     def __init__(self):
         super(Kernel_Representation, self).__init__()
-        self.x1_order3 = Three_Order_Module(256, 512)
-        self.x2_order3 = Three_Order_Module(512, 512)
-        self.x3_order3 = Three_Order_Module(1024, 512)
-        self.x4_order3 = Three_Order_Module(2048, 1536)
+        self.x1_order3 = Three_Order_Module(256, 256)
+        self.x2_order3 = Three_Order_Module(512, 256)
+        self.x3_order3 = Three_Order_Module(1024, 256)
+        self.x4_order3 = Three_Order_Module(2048, 1280)
 
-        self.x4_conv = ConvBNReLU(1536, 2048, kernel_size=1, stride=1, padding=0)
+        self.order1_conv = ConvBNReLU(2048, 2048, 1, stride=1, padding=0)
+        self.order2_conv = ConvBNReLU(2048, 2048, 1, stride=1, padding=0)
+        self.order3_conv = ConvBNReLU(2048, 2048, 1, stride=1, padding=0)
+
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
 
         self.init_weight()
@@ -114,19 +114,21 @@ class Kernel_Representation(nn.Module):
 
 
     def forward(self, x1, x2, x3, x4):
-        x1_order3 = self.x1_order3(self.maxpool(self.maxpool(x1)))
-        x2_order3 = self.x2_order3(self.maxpool(x2))
-        x3_order3 = self.x3_order3(x3)
-        x4_order3 = self.x4_order3(x4)
+        x1_order1, x1_order2, x1_order3 = self.x1_order3(self.maxpool(self.maxpool(x1)))
+        x2_order1, x2_order2, x2_order3 = self.x2_order3(self.maxpool(x2))
+        x3_order1, x3_order2, x3_order3 = self.x3_order3(x3)
+        x4_order1, x4_order2, x4_order3 = self.x4_order3(x4)
 
 
-        x1_x4 = torch.cat((x4_order3, x1_order3), dim=1)
-        x2_x4 = torch.cat((x4_order3, x2_order3), dim=1)
-        x3_x4 = torch.cat((x4_order3, x3_order3), dim=1)
-        x4 = self.x4_conv(x4_order3)
+        order1 = torch.cat((x4_order1, x3_order1, x2_order1, x1_order1), dim=1)
+        order2 = torch.cat((x4_order2, x3_order2, x2_order2, x1_order2), dim=1)
+        order3 = torch.cat((x4_order3, x3_order3, x2_order3, x1_order3), dim=1)
 
+        order1 = self.order1_conv(order1)
+        order2 = self.order2_conv(order2)
+        order3 = self.order3_conv(order3)
 
-        return x1_x4, x2_x4, x3_x4, x4
+        return order1, order2, order3
 
 
 class Feature_Fusion(nn.Module):
@@ -152,12 +154,12 @@ class Feature_Fusion(nn.Module):
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
 
-    def forward(self, x1_x4, x2_x4, x3_x4, x4):
+    def forward(self, order1, order2, order3, x4):
         H, W = x4.size()[2:]
 
-        feat1 = self.featurefusion1(x3_x4)
-        feat2 = self.featurefusion2(x2_x4)
-        feat3 = self.featurefusion3(x1_x4)
+        feat1 = self.featurefusion1(order3)
+        feat2 = self.featurefusion2(order2)
+        feat3 = self.featurefusion3(order1)
         feat4 = self.featurefusion4(x4)
 
         feat5 = self.avg(x4)
@@ -202,8 +204,8 @@ class HighOrder(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, r_x4 = self.backbone(x)
-        x1_x4, x2_x4, x3_x4, x4= self.kernelrep(x1, x2, x3, r_x4)
-        feat = self.featurefusion(x1_x4, x2_x4, x3_x4, x4)
+        order1, order2, order3 = self.kernelrep(x1, x2, x3, r_x4)
+        feat = self.featurefusion(order1, order2, order3, r_x4)
 
         H, W = x1.size()[2:]
         low = self.bn1(self.conv_low(x1))

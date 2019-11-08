@@ -10,10 +10,10 @@ from datasets.cityscapes import CityScapes, CityScapes_trainval
 from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-from model.combination2 import HighOrder
+from model.highorderv8 import HighOrder
 import argparse
-import config_CS as config
-# import config_ADE20K as config
+# import config_CS as config
+import config_ADE20K as config
 from pallete import get_mask_pallete
 import time
 from loss import OhemCELoss
@@ -53,9 +53,9 @@ def train(args):
         # rank=0
     )
 
-    dataset = CityScapes(mode='train')
+    # dataset = CityScapes(mode='train')
     # dataset = CityScapes_trainval(mode='train')
-    # dataset = ADE20K(mode='train')
+    dataset = ADE20K(mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(dataset,
                             batch_size=config.imgs_per_gpu,
@@ -142,7 +142,7 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 500) and dist.get_rank() == 0:
+        if (i + 1) == 60000 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
 
 

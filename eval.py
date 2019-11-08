@@ -10,7 +10,7 @@ from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.highorderv8 import HighOrder
 from metric import fast_hist, cal_scores
-import config
+import config_CS
 import argparse
 import numpy as np
 
@@ -29,7 +29,7 @@ def eval(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:{}'.format(config.port),
+        init_method='tcp://127.0.0.1:{}'.format(config_CS.port),
         world_size=torch.cuda.device_count(),
         rank=0
     )

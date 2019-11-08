@@ -53,6 +53,11 @@ class Three_Order_Module(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Three_Order_Module, self).__init__()
 
+        self.order4_1 = Kernel_Calculate(in_channels, 512)
+        self.order4_2 = Kernel_Calculate(in_channels, 512)
+        self.order4_3 = Kernel_Calculate(in_channels, 512)
+        self.order4_4 = Kernel_Calculate(in_channels, 512)
+
         self.order3_1 = Kernel_Calculate(in_channels, 512)
         self.order3_2 = Kernel_Calculate(in_channels, 512)
         self.order3_3 = Kernel_Calculate(in_channels, 512)
@@ -62,7 +67,7 @@ class Three_Order_Module(nn.Module):
 
         self.order1_1 = Kernel_Calculate(in_channels, 512)
 
-        self.conv_down = Kernel_Calculate(512 * 3, out_channels)
+        self.conv_down = Kernel_Calculate(512 * 4, out_channels)
 
         self.init_weight()
 
@@ -75,6 +80,13 @@ class Three_Order_Module(nn.Module):
 
 
     def forward(self, x):
+
+        x_order4_1 = self.order4_1(x)
+        x_order4_2 = self.order4_2(x)
+        x_order4_3 = self.order4_3(x)
+        x_order4_4 = self.order4_4(x)
+        x_order4 = x_order4_1 * x_order4_2 * x_order4_3 * x_order4_4
+
         x_order3_1 = self.order3_1(x)
         x_order3_2 = self.order3_2(x)
         x_order3_3 = self.order3_3(x)
@@ -86,7 +98,7 @@ class Three_Order_Module(nn.Module):
 
         x_order1 = self.order1_1(x)
 
-        x = torch.cat((x_order1, x_order2, x_order3), dim=1)
+        x = torch.cat((x_order1, x_order2, x_order3, x_order4), dim=1)
         x = self.conv_down(x)
 
         return x
@@ -202,7 +214,7 @@ class HighOrder(nn.Module):
 
     def forward(self, x):
         x1, x2, x3, r_x4 = self.backbone(x)
-        x1_x4, x2_x4, x3_x4, x4= self.kernelrep(x1, x2, x3, r_x4)
+        x1_x4, x2_x4, x3_x4, x4 = self.kernelrep(x1, x2, x3, r_x4)
         feat = self.featurefusion(x1_x4, x2_x4, x3_x4, x4)
 
         H, W = x1.size()[2:]
