@@ -3,6 +3,7 @@
 
 
 from PIL import Image
+import torchvision.transforms.functional as F
 import PIL.ImageEnhance as ImageEnhance
 import random
 
@@ -17,13 +18,19 @@ class RandomCrop(object):
         assert im.size == lb.size
         W, H = self.size
         w, h = im.size
+        pad_h = max((H-h), 0)
+        pad_w = max((W-w), 0)
+        if pad_h > 0 or pad_w > 0:
+            im = F.pad(im, (int(pad_w /2) + 1, int(pad_h / 2) + 1), fill=0, padding_mode='constant')
+            lb = F.pad(lb, (int(pad_w /2) + 1, int(pad_h / 2) + 1), fill=-1, padding_mode='constant')
 
         if (W, H) == (w, h): return dict(im = im, lb = lb)
-        if w < W or h < H:
-            scale = float(W) / w if w < h else float(H) / h
-            w, h = int(scale * w + 1), int(scale * h + 1)
-            im = im.resize((w, h), Image.BILINEAR)
-            lb = lb.resize((w, h), Image.NEAREST)
+        # if w < W or h < H:
+        #     scale = float(W) / w if w < h else float(H) / h
+        #     w, h = int(scale * w + 1), int(scale * h + 1)
+        #     im = im.resize((w, h), Image.BILINEAR)
+        #     lb = lb.resize((w, h), Image.NEAREST)
+        w, h = im.size
         sw, sh = random.random() * (w - W), random.random() * (h - H)
         crop = int(sw), int(sh), int(sw) + W, int(sh) + H
         return dict(

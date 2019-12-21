@@ -1,9 +1,10 @@
 import numpy as np
 import torch
-import config_CS
+# import config_CS as config
+import config_ADE20K as config
 
 def fast_hist(label_true, label_pred):
-    n_classes = config_CS.classes
+    n_classes = config.classes
     mask = (label_true >= 0) & (label_true < n_classes)
     hist = torch.bincount(
         n_classes * label_true[mask].int() + label_pred[mask].int(),
@@ -36,7 +37,7 @@ label_names = [
 ]
 
 def cal_scores(hist):
-    n_classes = config_CS.classes
+    n_classes = config.classes
     acc = np.diag(hist).sum() / hist.sum()
     acc_cls = np.diag(hist) / hist.sum(axis=1)
     acc_cls = np.nanmean(acc_cls)

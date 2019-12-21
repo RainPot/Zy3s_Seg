@@ -10,7 +10,7 @@ from datasets.cityscapes import CityScapes, CityScapes_trainval
 from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-from model.highorderv8 import HighOrder
+from model.v8c import HighOrder
 import argparse
 # import config_CS as config
 import config_ADE20K as config
@@ -78,6 +78,7 @@ def train(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
+    # net.load_state_dict(torch.load('./Res120000.pth', map_location='cpu'))
 
 
     n_min = config.imgs_per_gpu * config.crop_size[0] * config.crop_size[1] // 16
@@ -109,7 +110,12 @@ def train(args):
             data = iter(dataloader)
             image, label, name = next(data)
 
-
+        # if (i+1) <= 120000:
+        #     if (i+1) % 200 == 0:
+        #         print(i)
+        #     optimizer.zero_grad()
+        #     optimizer.step()
+        #     continue
         image = image.cuda()
         image_see = image.cpu().numpy()
         label = label.cuda()
@@ -143,7 +149,7 @@ def train(args):
             total_loss = 0
 
         if (i + 1) == 60000 and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './ResADE20K{}.pth'.format(i+1))
 
 
 

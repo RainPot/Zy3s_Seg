@@ -1,22 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="root@192.168.193.252:21400">
+  <component name="PublishConfigData" serverName="chaosuan">
     <serverData>
-      <paths name="debug">
+      <paths name="chaosuan">
         <serverdata>
           <mappings>
-            <mapping deploy="/root/Res" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@192.168.193.252:21400">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/root/Res" local="$PROJECT_DIR$" />
+            <mapping deploy="/home/sunxinhaida/zy/Res" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
     </serverData>
-    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

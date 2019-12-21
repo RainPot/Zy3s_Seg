@@ -114,10 +114,16 @@ class Kernel_Representation(nn.Module):
 
 
     def forward(self, x1, x2, x3, x4):
-        x1_order3 = self.x1_order3(self.maxpool(self.maxpool(x1)))
-        x2_order3 = self.x2_order3(self.maxpool(x2))
+        # x1_order3 = self.x1_order3(self.maxpool(self.maxpool(x1)))
+        x1_order3 = self.maxpool(self.maxpool(self.x1_order3(x1)))
+        # x2_order3 = self.x2_order3(self.maxpool(x2))
+        x2_order3 = self.maxpool(self.x2_order3(x2))
         x3_order3 = self.x3_order3(x3)
         x4_order3 = self.x4_order3(x4)
+        H, W = x4_order3.size()[2:]
+        x1_order3 = F.interpolate(x1_order3, (H, W), mode='bilinear', align_corners=True)
+        x2_order3 = F.interpolate(x2_order3, (H, W), mode='bilinear', align_corners=True)
+        x3_order3 = F.interpolate(x3_order3, (H, W), mode='bilinear', align_corners=True)
 
 
         x1_x4 = torch.cat((x4_order3, x1_order3), dim=1)
@@ -155,9 +161,9 @@ class Feature_Fusion(nn.Module):
     def forward(self, x1_x4, x2_x4, x3_x4, x4):
         H, W = x4.size()[2:]
 
-        feat1 = self.featurefusion1(x3_x4)
+        feat1 = self.featurefusion1(x1_x4)
         feat2 = self.featurefusion2(x2_x4)
-        feat3 = self.featurefusion3(x1_x4)
+        feat3 = self.featurefusion3(x3_x4)
         feat4 = self.featurefusion4(x4)
 
         feat5 = self.avg(x4)
@@ -175,7 +181,7 @@ class HighOrder(nn.Module):
     def __init__(self, n_classes):
         super(HighOrder, self).__init__()
 
-        self.backbone = resnet(101, 16)
+        self.backbone = resnet(50, 16)
         self.kernelrep = Kernel_Representation()
         self.featurefusion = Feature_Fusion()
 

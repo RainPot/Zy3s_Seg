@@ -10,7 +10,7 @@ from datasets.cityscapes import CityScapes, CityScapes_trainval
 from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-from model.combination2 import HighOrder
+from model.oneOrder import HighOrder
 import argparse
 import config_CS as config
 # import config_ADE20K as config
@@ -150,3 +150,6 @@ def train(args):
 if __name__ == '__main__':
     args = parse_args()
     train(args)
+
+
+

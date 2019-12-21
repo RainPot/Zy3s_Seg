@@ -133,7 +133,7 @@ def resnet(n_layers, stride):
         101: [3, 4, 23 ,3],
     }[n_layers]
     pretrained_path = {
-        50: './models/resnet50-ebb6acbb.pth',
+        50: './resnet50-ebb6acbb.pth',
         101: './ResEMANet.pth',
     }[n_layers]
 

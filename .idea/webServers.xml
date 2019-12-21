@@ -2,12 +2,12 @@
 <project version="4">
   <component name="WebServers">
     <option name="servers">
-      <webServer id="51f7318a-bc34-47c3-bc86-cedeb1b14ad5" name="debug" url="http://192.168.193.252">
-        <fileTransfer host="192.168.193.252" port="21400" accessType="SFTP">
+      <webServer id="34906b7d-c119-41de-aa05-253020b44d85" name="chaosuan" url="http://11.11.100.1">
+        <fileTransfer host="11.11.100.1" port="22" accessType="SFTP">
           <advancedOptions>
-            <advancedOptions dataProtectionLevel="Private" />
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>
-          <option name="port" value="21400" />
+          <option name="port" value="22" />
         </fileTransfer>
       </webServer>
     </option>

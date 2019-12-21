@@ -1,5 +1,5 @@
 {
-    "jobName": "test_83007703",
+    "jobName": "test_22550846",
     "image": "192.168.193.253:5000/pytorch",
     "authFile": "",
     "dataDir": "",
@@ -12,10 +12,10 @@
         {
             "name": "task",
             "taskNumber": 1,
-            "cpuNumber": 10,
-            "memoryMB": 8000,
-            "shmMB": 4000,
-            "gpuNumber": 1,
+            "cpuNumber": 28,
+            "memoryMB": 20000,
+            "shmMB": 8000,
+            "gpuNumber": 2,
             "command": "cd $PAI_JOB_NAME && bash setup.sh && sleep infinity"
         }
     ]

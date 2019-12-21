@@ -27,22 +27,16 @@ class ADE20K(Dataset):
 
         ## parse img directory
 
+
         if self.mode == 'train':
-            impth = osp.join('./ADEChallengeData2016', 'images', 'training')
-            self.imgnames = [osp.join(impth, el) for el in os.listdir(impth)]
-            lbpth = osp.join('./ADEChallengeData2016', 'annotations', 'training')
-            self.lbnames = [osp.join(lbpth, el) for el in os.listdir(lbpth)]
-            self.name = os.listdir(impth)
+            self.names = [el for el in os.listdir(osp.join('./ADEChallengeData2016', 'images', 'training'))]
 
         if self.mode == 'val':
-            impth = osp.join('./ADEChallengeData2016', 'images', 'validation')
-            self.imgnames = [osp.join(impth, el) for el in os.listdir(impth)]
-            lbpth = osp.join('./ADEChallengeData2016', 'annotations', 'validation')
-            self.lbnames = [osp.join(lbpth, el) for el in os.listdir(lbpth)]
+            self.names = [el for el in os.listdir(osp.join('./ADEChallengeData2016', 'images', 'validation'))]
 
         ## parse gt directory
 
-        self.len = len(self.imgnames)
+        self.len = len(self.names)
         # assert set(self.imgnames) == set(self.lbnames)
 
 
@@ -63,9 +57,15 @@ class ADE20K(Dataset):
 
 
     def __getitem__(self, idx):
-        impth = self.imgnames[idx]
-        lbpth = self.lbnames[idx]
-        name = self.name[idx]
+        name = self.names[idx]
+        if self.mode == 'train':
+            impth = osp.join('./ADEChallengeData2016', 'images', 'training', name)
+            lbpth = osp.join('./ADEChallengeData2016', 'annotations', 'training', name[:-4]+'.png')
+        elif self.mode == 'val':
+            impth = osp.join('./ADEChallengeData2016', 'images', 'validation', name)
+            lbpth = osp.join('./ADEChallengeData2016', 'annotations', 'validation', name[:-4]+'.png')
+        else:
+            print('nonono')
         img = Image.open(impth).convert('RGB')
         label = Image.open(lbpth)
         if self.mode == 'train':
@@ -253,6 +253,8 @@ class CityScapes_test(Dataset):
 
 if __name__ == "__main__":
     # from tqdm import tqdm
+    pass
+    '''
     from torch.utils.data import DataLoader
     ds = CityScapes('./data/', mode='val')
     dl = DataLoader(ds,
@@ -265,3 +267,4 @@ if __name__ == "__main__":
         for el in imgs:
             print(el.size())
         break
+    '''

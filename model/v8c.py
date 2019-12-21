@@ -49,6 +49,19 @@ class ConvBNReLU(nn.Module):
         x = self.relu(x)
         return x
 
+class lowpath(nn.Module):
+    def __init__(self):
+        super(lowpath, self).__init__()
+        self.conv1 = ConvBNReLU(3, 64, 3, 1, 1, 1)
+        self.conv2 = ConvBNReLU(64, 128, 3, 1, 1, 1)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        return x
+
+
+
 class Three_Order_Module(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Three_Order_Module, self).__init__()
@@ -71,7 +84,7 @@ class Three_Order_Module(nn.Module):
             if isinstance(ly, nn.Conv2d):
                 nn.init.kaiming_normal_(ly.weight, a=1)
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-    #
+
 
 
     def forward(self, x):
@@ -96,15 +109,10 @@ class Three_Order_Module(nn.Module):
 class Kernel_Representation(nn.Module):
     def __init__(self):
         super(Kernel_Representation, self).__init__()
-        # self.x1_order3 = Three_Order_Module(256, 512)
-        self.x1_order3 = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
-        # self.x2_order3 = Three_Order_Module(512, 512)
-        self.x2_order3 = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
-        # self.x3_order3 = Three_Order_Module(1024, 512)
-        self.x3_order3 = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
-
-        # self.x4_order3 = Three_Order_Module(2048, 1536)
-        self.x4_order3 = ConvBNReLU(2048, 1536, kernel_size=1, stride=1, padding=0)
+        self.x1_order3 = Three_Order_Module(256, 512)
+        self.x2_order3 = Three_Order_Module(512, 512)
+        self.x3_order3 = Three_Order_Module(1024, 512)
+        self.x4_order3 = Three_Order_Module(2048, 1536)
 
         self.x4_conv = ConvBNReLU(1536, 2048, kernel_size=1, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
@@ -123,6 +131,10 @@ class Kernel_Representation(nn.Module):
         x2_order3 = self.x2_order3(self.maxpool(x2))
         x3_order3 = self.x3_order3(x3)
         x4_order3 = self.x4_order3(x4)
+        H, W = x4_order3.size()[2:]
+        x1_order3 = F.interpolate(x1_order3, (H, W), mode='bilinear', align_corners=True)
+        x2_order3 = F.interpolate(x2_order3, (H, W), mode='bilinear', align_corners=True)
+        x3_order3 = F.interpolate(x3_order3, (H, W), mode='bilinear', align_corners=True)
 
 
         x1_x4 = torch.cat((x4_order3, x1_order3), dim=1)
@@ -155,14 +167,14 @@ class Feature_Fusion(nn.Module):
             if isinstance(ly, nn.Conv2d):
                 nn.init.kaiming_normal_(ly.weight, a=1)
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-    #
+
 
     def forward(self, x1_x4, x2_x4, x3_x4, x4):
         H, W = x4.size()[2:]
 
-        feat1 = self.featurefusion1(x3_x4)
+        feat1 = self.featurefusion1(x1_x4)
         feat2 = self.featurefusion2(x2_x4)
-        feat3 = self.featurefusion3(x1_x4)
+        feat3 = self.featurefusion3(x3_x4)
         feat4 = self.featurefusion4(x4)
 
         feat5 = self.avg(x4)
@@ -180,15 +192,23 @@ class HighOrder(nn.Module):
     def __init__(self, n_classes):
         super(HighOrder, self).__init__()
 
-        self.backbone = resnet(50, 16)
+        self.backbone = resnet(101, 16)
         self.kernelrep = Kernel_Representation()
         self.featurefusion = Feature_Fusion()
 
-        self.conv_low = nn.Conv2d(256, 48, kernel_size=1, stride=1, padding=0)
+        self.low_2x = lowpath()
+        self.low_4x = lowpath()
+        self.low_8x = lowpath()
+
+        self.conv_low1 = nn.Conv2d(384, 48, kernel_size=1, stride=1, padding=0)
         self.bn1 = nn.BatchNorm2d(48)
+        self.conv_low2 = nn.Conv2d(640, 48, kernel_size=1, stride=1, padding=0)
+        self.bn2 = nn.BatchNorm2d(48)
+        self.conv_low3 = nn.Conv2d(1152, 48, kernel_size=1, stride=1, padding=0)
+        self.bn3 = nn.BatchNorm2d(48)
 
         self.conv_cat = nn.Sequential(
-            ConvBNReLU(304, 256),
+            ConvBNReLU(400, 256),
             ConvBNReLU(256, 256)
         )
 
@@ -203,17 +223,35 @@ class HighOrder(nn.Module):
             if isinstance(ly, nn.Conv2d):
                 nn.init.kaiming_normal_(ly.weight, a=1)
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
-    #
-    #
+
+
     def forward(self, x):
         x1, x2, x3, r_x4 = self.backbone(x)
-        x1_x4, x2_x4, x3_x4, x4 = self.kernelrep(x1, x2, x3, r_x4)
+        x1_x4, x2_x4, x3_x4, x4= self.kernelrep(x1, x2, x3, r_x4)
         feat = self.featurefusion(x1_x4, x2_x4, x3_x4, x4)
 
         H, W = x1.size()[2:]
-        low = self.bn1(self.conv_low(x1))
+
+        low1_short = F.interpolate(x, (H, W), mode='bilinear', align_corners=True)
+        low1_short = self.low_2x(low1_short)
+        low1 = torch.cat((x1, low1_short), dim=1)
+        low1 = self.bn1(self.conv_low1(low1))
+
+        low2_short = F.interpolate(x, (int(H/2), int(W/2)), mode='bilinear', align_corners=True)
+        low2_short = self.low_4x(low2_short)
+        low2 = torch.cat((x2, low2_short),dim=1)
+        low2 = self.bn2(self.conv_low2(low2))
+
+        low3_short = F.interpolate(x, (int(H/4), int(W/4)), mode='bilinear',align_corners=True)
+        low3_short = self.low_8x(low3_short)
+        low3 = torch.cat((x3, low3_short),dim=1)
+        low3 = self.bn3(self.conv_low3(low3))
+
+
         feat = F.interpolate(feat, (H, W), mode='bilinear', align_corners=True)
-        cat = torch.cat((feat, low), dim=1)
+        low2 = F.interpolate(low2, (H, W), mode='bilinear', align_corners=True)
+        low3 = F.interpolate(low3, (H, W), mode='bilinear', align_corners=True)
+        cat = torch.cat((feat, low1, low2, low3), dim=1)
         final = self.conv_cat(cat)
         final = self.conv_out(final)
 
@@ -221,6 +259,17 @@ class HighOrder(nn.Module):
         final = F.interpolate(final, (H, W), mode='bilinear', align_corners=True)
 
         return final
+
+
+
+
+
+
+
+
+
+
+
 
 
 
