@@ -21,7 +21,7 @@
   <component name="ProjectId" id="1TmpxYVgJZB2lq5RMEbKiR6UpBo" />
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/model" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RunDashboard">
@@ -84,7 +84,8 @@
       <workItem from="1576392618135" duration="1068000" />
       <workItem from="1576394090514" duration="1389000" />
       <workItem from="1576635646191" duration="199000" />
-      <workItem from="1576895015611" duration="21000" />
+      <workItem from="1576895015611" duration="622000" />
+      <workItem from="1576980320657" duration="9000" />
     </task>
     <servers />
   </component>
