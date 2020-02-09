@@ -6,7 +6,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
-from datasets.ADE20K import ADE20K
+from datasets.ADE20K import ADE20K_test
 from model.v8cADE import HighOrder
 from metric import fast_hist, cal_scores
 import config_ADE20K as config
@@ -80,7 +80,7 @@ def eval(args):
         # rank=args.local_rank
     )
 
-    dataset = ADE20K(mode='val')
+    dataset = ADE20K_test(mode='test')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(
         dataset,
@@ -91,7 +91,7 @@ def eval(args):
         drop_last=False,
         pin_memory=True
     )
-
+    print(dataset.__len__())
     net = HighOrder(150)
     net.cuda()
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
@@ -101,6 +101,7 @@ def eval(args):
     net.load_state_dict(torch.load('./ResADE20K150000.pth', map_location='cpu'))
     net.eval()
 
+    print(len(dataloader))
     data = iter(dataloader)
     palette = get_palette(256)
     num = 0
@@ -108,13 +109,14 @@ def eval(args):
     with torch.no_grad():
         while 1:
             try:
-                image, label, name = next(data)
+                image, name = next(data)
             except:
+
+                print(name)
                 break
 
             image = image.cuda()
-            label = label.cuda()
-            label = torch.squeeze(label, 1)
+
             N, _, H, W = image.size()
             preds = torch.zeros((N, 150, H, W))
             preds = preds.cuda()
@@ -131,26 +133,19 @@ def eval(args):
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                     output = F.softmax(output, 1)
                     preds += output
-            pred = preds.max(dim=1)[1]
-            hist_once = fast_hist(label, pred)
-            hist = torch.tensor(hist).cuda()
-            hist = hist + hist_once
-            dist.all_reduce(hist, dist.ReduceOp.SUM)
+            preds = np.asarray(np.argmax(preds.cpu(), axis=1), dtype=np.uint8)
+            for i in range(preds.shape[0]):
+                pred = preds[i]
+                save_img = Image.fromarray(pred)
+                save_img.putpalette(palette)
+                save_img.save(os.path.join('./results/', name[i][:-4] + '.png'))
+
             num += 1
             if num % 5 == 0:
                 print('iter: {}'.format(num))
 
-            # preds = np.asarray(np.argmax(preds.cpu(), axis=1), dtype=np.uint8)
-            # for i in range(preds.shape[0]):
-            #     pred = convert_label(preds[i], inverse=True)
-            #     save_img = Image.fromarray(pred)
-            #     save_img.putpalette(palette)
-            #     save_img.save(os.path.join('./results/', name[i] + '.png'))
 
-        hist = hist.cpu().numpy().astype(np.float32)
-        miou = cal_scores(hist)
 
-    print('miou = {}'.format(miou))
 
 
 if __name__ == '__main__':

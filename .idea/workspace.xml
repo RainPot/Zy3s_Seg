@@ -16,13 +16,20 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
   </component>
   <component name="ProjectId" id="1TmpxYVgJZB2lq5RMEbKiR6UpBo" />
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/model" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="last_opened_file_path" value="F:/Git/bin/git.exe" />
+    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\project\Res\model" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -86,6 +93,24 @@
       <workItem from="1576635646191" duration="199000" />
       <workItem from="1576895015611" duration="622000" />
       <workItem from="1576980320657" duration="9000" />
+      <workItem from="1577669074989" duration="813000" />
+      <workItem from="1577862197097" duration="1270000" />
+      <workItem from="1578381961731" duration="18359000" />
+      <workItem from="1578878563317" duration="7799000" />
+      <workItem from="1578919234940" duration="10065000" />
+      <workItem from="1579591578595" duration="6082000" />
+      <workItem from="1579745397151" duration="9701000" />
+      <workItem from="1579923908678" duration="1436000" />
+      <workItem from="1579964092727" duration="169000" />
+      <workItem from="1580007618337" duration="5643000" />
+      <workItem from="1580197887949" duration="635000" />
+      <workItem from="1580347471303" duration="90000" />
+      <workItem from="1580446829292" duration="610000" />
+      <workItem from="1580639402882" duration="4506000" />
+      <workItem from="1580693170766" duration="4349000" />
+      <workItem from="1580873309840" duration="603000" />
+      <workItem from="1581151900709" duration="2418000" />
+      <workItem from="1581211167025" duration="658000" />
     </task>
     <servers />
   </component>

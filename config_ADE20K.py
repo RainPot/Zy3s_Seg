@@ -10,7 +10,7 @@ crop_size = (512, 512)
 # imgs_per_gpu = 2
 imgs_per_gpu = 4
 # max_iter = 70000
-max_iter = 60000
+max_iter = 150000
 # classes = 19
 classes = 150
 # ignore_label = 255
@@ -29,8 +29,8 @@ ohem_thresh = 0.7
 
 
 
-eval_scales = (1.0,)
-eval_flip = False
+eval_scales = (0.5, 0.75, 1.0)
+eval_flip = True
 
 
 LR_DECAY = 10

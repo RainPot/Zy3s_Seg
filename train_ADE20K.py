@@ -148,7 +148,7 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i + 1) == 60000 and dist.get_rank() == 0:
+        if (i + 1) == 60000 or (i + 1) == 120000 or (i + 1) == 150000 and dist.get_rank() == 0:
             torch.save(net.state_dict(), './ResADE20K{}.pth'.format(i+1))
 
 

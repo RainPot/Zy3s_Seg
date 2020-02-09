@@ -10,8 +10,8 @@ from datasets.cityscapes import CityScapes, CityScapes_trainval
 from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
-# from model.oneOrder import HighOrder
 from model.v8c import HighOrder
+#from model.baseline import HighOrder
 import argparse
 import config_CS as config
 # import config_ADE20K as config
@@ -48,14 +48,14 @@ def train(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:{}'.format(config.port),
+        init_method='tcp://127.0.0.1:34933',
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
     )
 
-    dataset = CityScapes(mode='train')
-    # dataset = CityScapes_trainval(mode='train')
+    #dataset = CityScapes(mode='train')
+    dataset = CityScapes_trainval(mode='train')
     # dataset = ADE20K(mode='train')
     sampler = torch.utils.data.distributed.DistributedSampler(dataset)
     dataloader = DataLoader(dataset,
@@ -143,14 +143,11 @@ def train(args):
             print('iter: {}, loss: {}, time: {}h:{}m'.format(i+1, total_loss / 100.0, int(h), int(m)))
             total_loss = 0
 
-        if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 500) and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './Res{}.pth'.format(i+1))
+        if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 200) and dist.get_rank() == 0:
+            torch.save(net.state_dict(), './Resv8c{}.pth'.format(i+1))
 
 
 
 if __name__ == '__main__':
     args = parse_args()
     train(args)
-
-
-
