@@ -5,8 +5,8 @@ brightness = 0.5
 contrast = 0.5
 saturation = 0.5
 scales = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
-crop_size = (864, 864)
-# crop_size = (512, 512)
+# crop_size = (864, 864)
+crop_size = (768, 768)
 imgs_per_gpu = 2
 # imgs_per_gpu = 4
 max_iter = 60000
@@ -40,6 +40,6 @@ POLY_POWER = 0.9
 WEIGHT_DECAY = 1e-4
 
 
-port = 35735
+port = 35742
 
 

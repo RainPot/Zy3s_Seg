@@ -31,7 +31,7 @@ class Origin_Res(nn.Module):
 
     def forward(self, img):
         size = img.size()[-2:]
-        x1, x2 ,x3 ,x4 = self.resnet(img)
+        x1, x2 ,x3 ,x4 ,x0 = self.resnet(img)
         print(x1.size())
         print(x2.size())
         print(x3.size())

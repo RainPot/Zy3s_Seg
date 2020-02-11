@@ -31,16 +31,16 @@ class ConvBNReLU(nn.Module):
 class PAmodule(nn.Module):
     def __init__(self):
         super(PAmodule, self).__init__()
-        self.x1_down_conv = ConvBNReLU(256, 128, kernel_size=1, stride=1, padding=0)
-        self.x2_down_conv = ConvBNReLU(512, 128, kernel_size=1, stride=1, padding=0)
-        self.x3_down_conv = ConvBNReLU(1024, 128, kernel_size=1, stride=1, padding=0)
-        self.x4_down_conv = ConvBNReLU(2048, 512, kernel_size=1, stride=1, padding=0)
-        self.x0_down_conv = ConvBNReLU(128, 128, kernel_size=1, stride=1, padding=0)
+        self.x1_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
+        self.x2_down_conv = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
+        self.x3_down_conv = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
+        self.x4_down_conv = ConvBNReLU(2048, 1024, kernel_size=1, stride=1, padding=0)
+        self.x0_down_conv = ConvBNReLU(128, 512, kernel_size=1, stride=1, padding=0)
 
-        self.dilation18 = ConvBNReLU(768, 256, kernel_size=3, stride=1, padding=18, dilation=18)
-        self.dilation12 = ConvBNReLU(768, 256, kernel_size=3, stride=1, padding=12, dilation=12)
-        self.dilation6 = ConvBNReLU(768, 256, kernel_size=3, stride=1, padding=6, dilation=6)
-        self.dilation1 = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=1, dilation=1)
+        self.dilation18 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=18, dilation=18)
+        self.dilation12 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=12, dilation=12)
+        self.dilation6 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=6, dilation=6)
+        self.dilation1 = ConvBNReLU(1024, 256, kernel_size=3, stride=1, padding=1, dilation=1)
 
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.GAPConv = ConvBNReLU(2048, 256, kernel_size=1, stride=1, padding=0)
@@ -113,22 +113,26 @@ class DIGModule(nn.Module):
             stage0 = self.maxpool(stage0)
         stage0 = self.stage0_conv(stage0)
         stage0 = self.sigmoid(stage0)
-        feat = feat * stage0
+        feat_spatial = feat * stage0
+        feat = feat + feat_spatial
 
         stagecur = self.stage_conv(stagecur)
 
         stagecur_spatial = self.sigmoid(self.stage_spatial_conv(stagecur))
-        feat = feat * stagecur_spatial
+        feat_spatial = feat * stagecur_spatial
+        feat = feat + feat_spatial
 
-        stage_global_feat = self.GAP(stagecur)
-        stage_global_feat = F.interpolate(stage_global_feat, size=(H, W), mode='bilinear', align_corners=True)
         feat_stagecur_cat = torch.cat((feat, stagecur), dim=1)
         feat_stagecur_cat = self.fusion_conv(feat_stagecur_cat)
+
+        stage_global_feat = self.GAP(feat_stagecur_cat)
+        stage_global_feat = F.interpolate(stage_global_feat, size=(H, W), mode='bilinear', align_corners=True)
         similarity_map = F.cosine_similarity(feat_stagecur_cat, stage_global_feat, dim=1)
         similarity_map = similarity_map.unsqueeze(1)
 
 
-        feat_stagecur_cat = feat_stagecur_cat * similarity_map
+        feat_stagecur_cat_global = feat_stagecur_cat * similarity_map
+        feat_stagecur_cat = feat_stagecur_cat + feat_stagecur_cat_global
 
         feat_stagecur_cat = self.last_conv1(feat_stagecur_cat)
         feat_stagecur_cat = torch.cat((feat, feat_stagecur_cat), dim=1)
@@ -144,9 +148,9 @@ class PANet(nn.Module):
 
         self.backbone = resnet(101, 16)
         self.PAModule = PAmodule()
-        # self.DIGModule1 = DIGModule(3, 0, 1024)
-        # self.DIGModule2 = DIGModule(2, 1, 512)
-        # self.DIGModule3 = DIGModule(1, 1, 256)
+        self.DIGModule1 = DIGModule(3, 0, 1024)
+        self.DIGModule2 = DIGModule(2, 1, 512)
+        self.DIGModule3 = DIGModule(1, 1, 256)
         # self.DIGModule4 = DIGModule(0, 1, 128)
 
         self.conv_out = nn.Conv2d(256, classes, kernel_size=1, bias=False)
@@ -161,9 +165,9 @@ class PANet(nn.Module):
         H, W = x.size()[2:]
         x1, x2, x3, x4, x0 = self.backbone(x)
         feat = self.PAModule(x1, x2, x3, x4, x0)
-        # feat = self.DIGModule1(feat, x3, x0)
-        # feat = self.DIGModule2(feat, x2, x0)
-        # feat = self.DIGModule3(feat, x1, x0)
+        feat = self.DIGModule1(feat, x3, x0)
+        feat = self.DIGModule2(feat, x2, x0)
+        feat = self.DIGModule3(feat, x1, x0)
         # feat = self.DIGModule4(feat, x0, x0)
         final = self.conv_out(feat)
 

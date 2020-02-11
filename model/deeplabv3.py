@@ -122,7 +122,7 @@ class Deeplab_v3plus(nn.Module):
 
     def forward(self, x):
         H, W = x.size()[2:]
-        feat4, _, _, feat32 = self.backbone(x)
+        feat4, _, _, feat32, x0 = self.backbone(x)
         feat_aspp = self.aspp(feat32)
         logits = self.decoder(feat4, feat_aspp)
         logits = F.interpolate(logits, (H, W), mode='bilinear', align_corners=True)

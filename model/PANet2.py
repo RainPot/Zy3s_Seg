@@ -120,10 +120,11 @@ class DIGModule(nn.Module):
         stagecur_spatial = self.sigmoid(self.stage_spatial_conv(stagecur))
         feat = feat * stagecur_spatial
 
-        stage_global_feat = self.GAP(stagecur)
-        stage_global_feat = F.interpolate(stage_global_feat, size=(H, W), mode='bilinear', align_corners=True)
         feat_stagecur_cat = torch.cat((feat, stagecur), dim=1)
         feat_stagecur_cat = self.fusion_conv(feat_stagecur_cat)
+
+        stage_global_feat = self.GAP(feat_stagecur_cat)
+        stage_global_feat = F.interpolate(stage_global_feat, size=(H, W), mode='bilinear', align_corners=True)
         similarity_map = F.cosine_similarity(feat_stagecur_cat, stage_global_feat, dim=1)
         similarity_map = similarity_map.unsqueeze(1)
 
@@ -144,9 +145,9 @@ class PANet(nn.Module):
 
         self.backbone = resnet(101, 16)
         self.PAModule = PAmodule()
-        # self.DIGModule1 = DIGModule(3, 0, 1024)
-        # self.DIGModule2 = DIGModule(2, 1, 512)
-        # self.DIGModule3 = DIGModule(1, 1, 256)
+        self.DIGModule1 = DIGModule(3, 0, 1024)
+        self.DIGModule2 = DIGModule(2, 1, 512)
+        self.DIGModule3 = DIGModule(1, 1, 256)
         # self.DIGModule4 = DIGModule(0, 1, 128)
 
         self.conv_out = nn.Conv2d(256, classes, kernel_size=1, bias=False)
@@ -161,9 +162,9 @@ class PANet(nn.Module):
         H, W = x.size()[2:]
         x1, x2, x3, x4, x0 = self.backbone(x)
         feat = self.PAModule(x1, x2, x3, x4, x0)
-        # feat = self.DIGModule1(feat, x3, x0)
-        # feat = self.DIGModule2(feat, x2, x0)
-        # feat = self.DIGModule3(feat, x1, x0)
+        feat = self.DIGModule1(feat, x3, x0)
+        feat = self.DIGModule2(feat, x2, x0)
+        feat = self.DIGModule3(feat, x1, x0)
         # feat = self.DIGModule4(feat, x0, x0)
         final = self.conv_out(feat)
 

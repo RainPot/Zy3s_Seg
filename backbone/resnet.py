@@ -113,8 +113,8 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        x = self.relu(self.bn1(self.conv1(x)))
-        x = self.maxpool(x)
+        x0 = self.relu(self.bn1(self.conv1(x)))
+        x = self.maxpool(x0)
 
         x1 = self.layer1(x)
         x2 = self.layer2(x1)
@@ -125,7 +125,7 @@ class ResNet(nn.Module):
         # x = x.view(x.size(0), -1)
         # x = self.fc(x)
 
-        return x1, x2, x3, x4
+        return x1, x2, x3, x4, x0
 
 def resnet(n_layers, stride):
     layers = {

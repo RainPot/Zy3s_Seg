@@ -7,6 +7,7 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
 from model.highorderv8 import HighOrder
+from model.PANet import PANet
 from metric import fast_hist, cal_scores
 import config_CS
 import argparse
@@ -92,13 +93,14 @@ def eval(args):
         pin_memory = True
     )
 
-    net = HighOrder(19)
+    net = PANet(19)
+    # net = HighOrder(19)
     net.cuda()
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./Res60000.pth'))
+    net.load_state_dict(torch.load('./PANet60000.pth'))
     net.eval()
     
     data = iter(dataloader)
@@ -141,11 +143,11 @@ def eval(args):
                 print('iter: {}'.format(num))
 
             preds = np.asarray(np.argmax(preds.cpu(), axis=1), dtype=np.uint8)
-            for i in range(preds.shape[0]):
-                pred = convert_label(preds[i], inverse=True)
-                save_img = Image.fromarray(pred)
-                save_img.putpalette(palette)
-                save_img.save(os.path.join('./results/', name[i] + '.png'))
+            # for i in range(preds.shape[0]):
+            #     pred = convert_label(preds[i], inverse=True)
+            #     save_img = Image.fromarray(pred)
+            #     save_img.putpalette(palette)
+            #     save_img.save(os.path.join('./CS_results/', name[i] + '.png'))
 
         hist = hist.cpu().numpy().astype(np.float32)
         miou = cal_scores(hist)

@@ -207,7 +207,7 @@ class HighOrder(nn.Module):
 
 
     def forward(self, x):
-        x1, x2, x3, r_x4 = self.backbone(x)
+        x1, x2, x3, r_x4, x0 = self.backbone(x)
         x1_x4, x2_x4, x3_x4, x4= self.kernelrep(x1, x2, x3, r_x4)
         feat = self.featurefusion(x1_x4, x2_x4, x3_x4, x4)
 

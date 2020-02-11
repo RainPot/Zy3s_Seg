@@ -1,7 +1,7 @@
 import numpy as np
 import torch
-# import config_CS as config
-import config_ADE20K as config
+import config_CS as config
+# import config_ADE20K as config
 
 def fast_hist(label_true, label_pred):
     n_classes = config.classes
