@@ -2,22 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bffea7d7-22e6-4cda-b2a0-4157ecc9ed71" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/model/PANet2.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model/PANet3.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model/PANet4.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/model/PANet5.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/smalltest.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/PANet6.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/PANet7.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/model/PANet8.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backbone/resnet.py" beforeDir="false" afterPath="$PROJECT_DIR$/backbone/resnet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config_CS.py" beforeDir="false" afterPath="$PROJECT_DIR$/config_CS.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eval_multiscale.py" beforeDir="false" afterPath="$PROJECT_DIR$/eval_multiscale.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/metric.py" beforeDir="false" afterPath="$PROJECT_DIR$/metric.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/PANet.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/PANet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/deeplabv3.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/deeplabv3.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/highorderv8.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/highorderv8.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/origin_res.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/origin_res.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/v8c.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/v8c.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model/v8cADE.py" beforeDir="false" afterPath="$PROJECT_DIR$/model/v8cADE.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/trainv8c.py" beforeDir="false" afterPath="$PROJECT_DIR$/trainv8c.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -155,6 +146,8 @@
       <workItem from="1581211167025" duration="22800000" />
       <workItem from="1581295153307" duration="5790000" />
       <workItem from="1581382793491" duration="9474000" />
+      <workItem from="1581468988785" duration="6499000" />
+      <workItem from="1581553923716" duration="3705000" />
     </task>
     <servers />
   </component>
