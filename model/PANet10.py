@@ -85,12 +85,12 @@ class DIGModule(nn.Module):
         self.stagecur_stage0 = stagecur_stage0
         self.featstagecur = featstagecur
 
-        self.stage0_conv = ConvBNReLU(128, 256, kernel_size=1, stride=1, padding=0)
+        self.stage0_conv = nn.Conv2d(128, 256, kernel_size=1, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(2, 2)
         self.sigmoid = nn.Sigmoid()
 
         self.stage_conv = ConvBNReLU(stage_channel, 256, kernel_size=1, stride=1, padding=0)
-        self.stage_spatial_conv = ConvBNReLU(256, 256, kernel_size=1, stride=1, padding=0)
+        self.stage_spatial_conv = nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0)
         self.fusion_conv = ConvBNReLU(512, 256, kernel_size=1, stride=1, padding=0)
 
         self.last_conv1 = ConvBNReLU(256, 256, kernel_size=1, stride=1, padding=0)
@@ -156,7 +156,13 @@ class PANet(nn.Module):
         self.DIGModule3 = DIGModule(1, 1, 256)
         # self.DIGModule4 = DIGModule(0, 1, 128)
 
-        self.conv_all = ConvBNReLU(1024, 256, 3, 1, 1, 1)
+        self.feat1_conv1 = nn.Conv2d(512, 128, kernel_size=1, stride=1, padding=0)
+        self.feat1_conv2 = nn.Conv2d(128, 64, kernel_size=1, stride=1, padding=0)
+
+        self.conv_cat = nn.Sequential(
+            ConvBNReLU(320, 256),
+            ConvBNReLU(256, 256)
+        )
 
         self.conv_out = nn.Conv2d(256, classes, kernel_size=1, bias=False)
 
@@ -173,16 +179,15 @@ class PANet(nn.Module):
         x1, x2, x3, x4, x0 = self.backbone(x)
         feat = self.PAModule(x1, x2, x3, x4)
         feat1 = self.DIGModule1(feat, x3, x0)
-        feat2 = self.DIGModule2(feat1, x2, x0)
-        feat3 = self.DIGModule3(feat2, x1, x0)
+        feat1 = self.DIGModule2(feat1, x2, x0)
+        feat1 = self.DIGModule3(feat1, x1, x0)
         # feat = self.DIGModule4(feat, x0, x0)
-        H1, W1 = feat.size()[2:]
-        feat1 = F.interpolate(feat1, (H1, W1), mode='bilinear', align_corners=True)
-        feat2 = F.interpolate(feat2, (H1, W1), mode='bilinear', align_corners=True)
-        feat3 = F.interpolate(feat3, (H1, W1), mode='bilinear', align_corners=True)
-
-        feat_all = torch.cat((feat, feat1, feat2, feat3), dim=1)
-        feat = self.conv_all(feat_all)
+        feat1 = torch.cat((x1, feat1), dim=1)
+        feat1 = self.feat1_conv2(self.feat1_conv1(feat1))
+        H1, W1 = feat1.size()[2:]
+        feat = F.interpolate(feat, (H1, W1), mode='bilinear', align_corners=True)
+        feat = torch.cat((feat, feat1), dim=1)
+        feat = self.conv_cat(feat)
         final = self.conv_out(feat)
 
         final = F.interpolate(final, (H, W), mode='bilinear', align_corners=True)

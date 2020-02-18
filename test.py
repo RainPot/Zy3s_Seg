@@ -8,7 +8,7 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes_test
 from model.highorderv8 import HighOrder
-from model.PANet6 import PANet
+from model.PANet13 import PANet
 from metric import fast_hist, cal_scores
 import config_CS
 import argparse
@@ -97,7 +97,7 @@ def eval(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./PANet7_trainval60000.pth'))
+    net.load_state_dict(torch.load('./PANet14_trainval60000.pth'))
     net.eval()
 
     data = iter(dataloader)

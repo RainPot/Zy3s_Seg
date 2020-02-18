@@ -9,7 +9,7 @@ scales = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)
 crop_size = (768, 768)
 imgs_per_gpu = 2
 # imgs_per_gpu = 4
-max_iter = 60000
+max_iter = 100000
 # max_iter = 180000
 classes = 19
 # classes = 150
@@ -40,6 +40,6 @@ POLY_POWER = 0.9
 WEIGHT_DECAY = 1e-4
 
 
-port = 35723
+port = 35740
 
 

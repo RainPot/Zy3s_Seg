@@ -4,6 +4,9 @@ import torch.nn.functional as F
 from backbone.resnet import resnet
 
 
+
+
+
 class Kernel_Calculate(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=0):
         super(Kernel_Calculate, self).__init__()

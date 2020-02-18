@@ -4,7 +4,16 @@ import torch.nn.functional as F
 
 from backbone.resnet import resnet
 
+class lowpath(nn.Module):
+    def __init__(self):
+        super(lowpath, self).__init__()
+        self.conv1 = ConvBNReLU(3, 64, 3, 1, 1, 1)
+        self.conv2 = ConvBNReLU(64, 128, 3, 1, 1, 1)
 
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        return x
 
 class ConvBNReLU(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=0, dilation=1):
@@ -34,8 +43,8 @@ class PAmodule(nn.Module):
     def __init__(self):
         super(PAmodule, self).__init__()
         self.x1_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
-        self.x2_down_conv = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
-        self.x3_down_conv = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
+        self.x2_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
+        self.x3_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
         self.x4_down_conv = ConvBNReLU(2048, 1536, kernel_size=1, stride=1, padding=0)
 
 
@@ -85,12 +94,12 @@ class DIGModule(nn.Module):
         self.stagecur_stage0 = stagecur_stage0
         self.featstagecur = featstagecur
 
-        self.stage0_conv = ConvBNReLU(128, 256, kernel_size=1, stride=1, padding=0)
+        self.stage0_conv = nn.Conv2d(128, 256, kernel_size=1, stride=1, padding=0)
         self.maxpool = nn.MaxPool2d(2, 2)
         self.sigmoid = nn.Sigmoid()
 
         self.stage_conv = ConvBNReLU(stage_channel, 256, kernel_size=1, stride=1, padding=0)
-        self.stage_spatial_conv = ConvBNReLU(256, 256, kernel_size=1, stride=1, padding=0)
+        self.stage_spatial_conv = nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0)
         self.fusion_conv = ConvBNReLU(512, 256, kernel_size=1, stride=1, padding=0)
 
         self.last_conv1 = ConvBNReLU(256, 256, kernel_size=1, stride=1, padding=0)
@@ -150,15 +159,32 @@ class PANet(nn.Module):
         super(PANet, self).__init__()
 
         self.backbone = resnet(101, 16)
+        self.x4_low_conv = nn.Conv2d(2048, 256, kernel_size=1, stride=1, padding=0)
         self.PAModule = PAmodule()
         self.DIGModule1 = DIGModule(3, 0, 1024)
         self.DIGModule2 = DIGModule(2, 1, 512)
         self.DIGModule3 = DIGModule(1, 1, 256)
         # self.DIGModule4 = DIGModule(0, 1, 128)
 
-        self.conv_all = ConvBNReLU(1024, 256, 3, 1, 1, 1)
+        self.low_2x = lowpath()
+        self.low_4x = lowpath()
+        self.low_8x = lowpath()
+
+        self.conv_low1 = nn.Conv2d(384, 48, kernel_size=1, stride=1, padding=0)
+        self.bn1 = nn.BatchNorm2d(48)
+        self.conv_low2 = nn.Conv2d(640, 48, kernel_size=1, stride=1, padding=0)
+        self.bn2 = nn.BatchNorm2d(48)
+        self.conv_low3 = nn.Conv2d(1152, 48, kernel_size=1, stride=1, padding=0)
+        self.bn3 = nn.BatchNorm2d(48)
+
+        self.conv_cat = nn.Sequential(
+            ConvBNReLU(400, 256),
+            ConvBNReLU(256, 256)
+        )
 
         self.conv_out = nn.Conv2d(256, classes, kernel_size=1, bias=False)
+
+        self.relu = nn.ReLU(inplace=True)
 
         self.init_weight()
 
@@ -169,22 +195,43 @@ class PANet(nn.Module):
                 if not ly.bias is None: nn.init.constant_(ly.bias, 0)
 
     def forward(self, x):
-        H, W = x.size()[2:]
+
         x1, x2, x3, x4, x0 = self.backbone(x)
-        feat = self.PAModule(x1, x2, x3, x4)
-        feat1 = self.DIGModule1(feat, x3, x0)
-        feat2 = self.DIGModule2(feat1, x2, x0)
-        feat3 = self.DIGModule3(feat2, x1, x0)
+
+        x4_low = self.x4_low_conv(x4)
+
+        x3_low = self.DIGModule1(x4_low, x3, x0)
+        x2_low = self.DIGModule2(x3_low, x2, x0)
+        x1_low = self.DIGModule3(x2_low, x1, x0)
         # feat = self.DIGModule4(feat, x0, x0)
-        H1, W1 = feat.size()[2:]
-        feat1 = F.interpolate(feat1, (H1, W1), mode='bilinear', align_corners=True)
-        feat2 = F.interpolate(feat2, (H1, W1), mode='bilinear', align_corners=True)
-        feat3 = F.interpolate(feat3, (H1, W1), mode='bilinear', align_corners=True)
 
-        feat_all = torch.cat((feat, feat1, feat2, feat3), dim=1)
-        feat = self.conv_all(feat_all)
-        final = self.conv_out(feat)
+        feat = self.PAModule(x1_low, x2_low, x3_low, x4)
 
+        H, W = x1.size()[2:]
+
+        low1_short = F.interpolate(x, (H, W), mode='bilinear', align_corners=True)
+        low1_short = self.low_2x(low1_short)
+        low1 = torch.cat((x1, low1_short), dim=1)
+        low1 = self.bn1(self.conv_low1(low1))
+
+        low2_short = F.interpolate(x, (int(H / 2), int(W / 2)), mode='bilinear', align_corners=True)
+        low2_short = self.low_4x(low2_short)
+        low2 = torch.cat((x2, low2_short), dim=1)
+        low2 = self.bn2(self.conv_low2(low2))
+
+        low3_short = F.interpolate(x, (int(H / 4), int(W / 4)), mode='bilinear', align_corners=True)
+        low3_short = self.low_8x(low3_short)
+        low3 = torch.cat((x3, low3_short), dim=1)
+        low3 = self.bn3(self.conv_low3(low3))
+
+        feat = F.interpolate(feat, (H, W), mode='bilinear', align_corners=True)
+        low2 = F.interpolate(low2, (H, W), mode='bilinear', align_corners=True)
+        low3 = F.interpolate(low3, (H, W), mode='bilinear', align_corners=True)
+        cat = torch.cat((feat, low1, low2, low3), dim=1)
+        final = self.conv_cat(cat)
+        final = self.conv_out(final)
+
+        H, W = x.size()[2:]
         final = F.interpolate(final, (H, W), mode='bilinear', align_corners=True)
 
         return final

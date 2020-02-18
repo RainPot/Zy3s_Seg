@@ -151,12 +151,12 @@ class PANet(nn.Module):
 
         self.backbone = resnet(101, 16)
         self.PAModule = PAmodule()
-        self.DIGModule1 = DIGModule(3, 0, 1024)
-        self.DIGModule2 = DIGModule(2, 1, 512)
-        self.DIGModule3 = DIGModule(1, 1, 256)
+        # self.DIGModule1 = DIGModule(3, 0, 1024)
+        # self.DIGModule2 = DIGModule(2, 1, 512)
+        # self.DIGModule3 = DIGModule(1, 1, 256)
         # self.DIGModule4 = DIGModule(0, 1, 128)
 
-        self.conv_all = ConvBNReLU(1024, 256, 3, 1, 1, 1)
+        self.conv_all = ConvBNReLU(512, 256, 3, 1, 1, 1)
 
         self.conv_out = nn.Conv2d(256, classes, kernel_size=1, bias=False)
 
@@ -172,16 +172,17 @@ class PANet(nn.Module):
         H, W = x.size()[2:]
         x1, x2, x3, x4, x0 = self.backbone(x)
         feat = self.PAModule(x1, x2, x3, x4)
-        feat1 = self.DIGModule1(feat, x3, x0)
-        feat2 = self.DIGModule2(feat1, x2, x0)
-        feat3 = self.DIGModule3(feat2, x1, x0)
+        # feat1 = self.DIGModule1(feat, x3, x0)
+        # feat2 = self.DIGModule2(feat1, x2, x0)
+        # feat3 = self.DIGModule3(feat2, x1, x0)
         # feat = self.DIGModule4(feat, x0, x0)
-        H1, W1 = feat.size()[2:]
-        feat1 = F.interpolate(feat1, (H1, W1), mode='bilinear', align_corners=True)
-        feat2 = F.interpolate(feat2, (H1, W1), mode='bilinear', align_corners=True)
-        feat3 = F.interpolate(feat3, (H1, W1), mode='bilinear', align_corners=True)
+        H1, W1 = x1.size()[2:]
+        # feat1 = F.interpolate(feat1, (H1, W1), mode='bilinear', align_corners=True)
+        # feat2 = F.interpolate(feat2, (H1, W1), mode='bilinear', align_corners=True)
+        # feat3 = F.interpolate(feat3, (H1, W1), mode='bilinear', align_corners=True)
+        feat = F.interpolate(feat, (H1, W1), mode='bilinear', align_corners=True)
 
-        feat_all = torch.cat((feat, feat1, feat2, feat3), dim=1)
+        feat_all = torch.cat((feat, x1), dim=1)
         feat = self.conv_all(feat_all)
         final = self.conv_out(feat)
 
