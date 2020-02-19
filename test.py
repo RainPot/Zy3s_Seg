@@ -97,7 +97,7 @@ def eval(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./PANet14_trainval60000.pth'))
+    net.load_state_dict(torch.load('./PANet14_trainval100000.pth'))
     net.eval()
 
     data = iter(dataloader)

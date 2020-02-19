@@ -49,7 +49,7 @@
       <recent name="E:\project\Res\model" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.smalltest">
+  <component name="RunManager" selected="Python.submit">
     <configuration name="smalltest" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Res" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -96,8 +96,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.smalltest" />
         <item itemvalue="Python.submit" />
+        <item itemvalue="Python.smalltest" />
       </list>
     </recent_temporary>
   </component>
@@ -150,6 +150,7 @@
       <workItem from="1581835794957" duration="599000" />
       <workItem from="1581906146975" duration="5673000" />
       <workItem from="1581989302107" duration="3245000" />
+      <workItem from="1582074227306" duration="8826000" />
     </task>
     <servers />
   </component>
@@ -174,14 +175,30 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1581906217651" />
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1582082893836">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1582082893836" />
+    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1582082893836">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1582082893836" />
+    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1582082893836">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1582082893836" />
+    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1582082893836">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1582082893836" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1581926055969">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1581926055969" />
-    <state x="645" y="344" key="com.intellij.ide.util.TipDialog" timestamp="1581989304027">
+    <state x="645" y="344" key="com.intellij.ide.util.TipDialog" timestamp="1582074227660">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="645" y="344" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1581989304027" />
+    <state x="645" y="344" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1582074227660" />
     <state x="827" y="413" key="publish.login" timestamp="1581989391357">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
@@ -189,6 +206,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Res$smalltest.coverage" NAME="smalltest Coverage Results" MODIFIED="1581235178813" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Res$submit.coverage" NAME="submit Coverage Results" MODIFIED="1576392706563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Res$submit.coverage" NAME="submit Coverage Results" MODIFIED="1582079609578" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
