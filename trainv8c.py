@@ -11,7 +11,7 @@ from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.v8c import HighOrder
-from model.PANet16 import PANet
+from model.PANet19 import PANet
 #from model.baseline import HighOrder
 import argparse
 import config_CS as config
@@ -49,7 +49,7 @@ def train(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:34680',
+        init_method='tcp://127.0.0.1:34700',
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
@@ -69,8 +69,8 @@ def train(args):
 
     print(dataloader.__len__())
     # net = Origin_Res()
-    # net = PANet(config.classes)
-    net = HighOrder(config.classes)
+    net = PANet(config.classes)
+    # net = HighOrder(config.classes)
     # for i in net.named_modules():
     #     print(i)
     # net = Deeplab_v3plus()
@@ -114,21 +114,16 @@ def train(args):
 
 
         image = image.cuda()
-        image_see = image.cpu().numpy()
         label = label.cuda()
         label = torch.squeeze(label, 1)
 
-        label_see = label.cpu().numpy()
 
-        output = net(image)
-        output_see = output.detach().cpu().numpy()
-
-        predict = torch.max(output[0], 1)[1].cpu().numpy() + 1
-
-        mask = get_mask_pallete(predict, 'cityscapes')
+        # output = net(image)
+        output, guidence = net(image)
 
 
-        loss = criteria(output, label)
+        # loss = criteria(output, label)
+        loss = 0.8 * criteria(output, label) + 0.2 * criteria(guidence, label)
         loss = loss.mean()
         optimizer.zero_grad()
         loss.backward()
@@ -146,7 +141,7 @@ def train(args):
             total_loss = 0
 
         if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 200) and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './HighOrder_train{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './PANet20_train{}.pth'.format(i+1))
 
 
 
