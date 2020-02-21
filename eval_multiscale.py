@@ -6,8 +6,8 @@ import os
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
-from model.highorderv8 import HighOrder
-from model.PANet13 import PANet
+from model.v8c import HighOrder
+from model.PANet16 import PANet
 from metric import fast_hist, cal_scores
 import config_CS
 import argparse
@@ -93,14 +93,14 @@ def eval(args):
         pin_memory = True
     )
 
-    net = PANet(19)
-    # net = HighOrder(19)
+    # net = PANet(19)
+    net = HighOrder(19)
     net.cuda()
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./PANet14_trainval60000.pth'))
+    net.load_state_dict(torch.load('./HighOrder_train60000.pth'))
     net.eval()
     
     data = iter(dataloader)

@@ -49,7 +49,7 @@ def train(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:34660',
+        init_method='tcp://127.0.0.1:34680',
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
@@ -69,8 +69,8 @@ def train(args):
 
     print(dataloader.__len__())
     # net = Origin_Res()
-    net = PANet(config.classes)
-    # net = HighOrder(config.classes)
+    # net = PANet(config.classes)
+    net = HighOrder(config.classes)
     # for i in net.named_modules():
     #     print(i)
     # net = Deeplab_v3plus()
@@ -146,7 +146,7 @@ def train(args):
             total_loss = 0
 
         if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 200) and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './PANet17_train{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './HighOrder_train{}.pth'.format(i+1))
 
 
 
