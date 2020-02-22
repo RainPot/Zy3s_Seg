@@ -31,7 +31,7 @@ class ConvBNReLU(nn.Module):
 
 
 class PAmodule(nn.Module):
-    def __init__(self, classes = 19):
+    def __init__(self, classes=19):
         super(PAmodule, self).__init__()
         self.x1_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
         self.x2_down_conv = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
@@ -44,7 +44,6 @@ class PAmodule(nn.Module):
         self.x4_guidence_up = ConvBNReLU(classes, 256, kernel_size=1, stride=1, padding=0)
 
 
-
         self.dilation18 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=18, dilation=18)
         self.dilation12 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=12, dilation=12)
         self.dilation6 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=6, dilation=6)
@@ -55,18 +54,10 @@ class PAmodule(nn.Module):
         self.x04_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
 
         self.x014_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
-        self.x124_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
 
 
         self.x014conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=12, dilation=12)
-        self.x124conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=18, dilation=18)
         self.x234conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=24, dilation=24)
-
-        self.x0124conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=15, dilation=15)
-        self.x1234conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=21, dilation=21)
-
-        self.x0124_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
-        # self.x1234_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
 
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
         self.GAPConv = ConvBNReLU(2048, 256, kernel_size=1, stride=1, padding=0)
@@ -114,31 +105,17 @@ class PAmodule(nn.Module):
 
 
         x014 = self.x014conv(torch.cat((x4x0, x4x1), dim=1))
-        x124 = self.x124conv(torch.cat((x4x1, x4x2), dim=1))
         x234 = self.x234conv(torch.cat((x4x2, x4x3), dim=1))
-
-        x124_gate = self.sigmoid(self.x124_gatemap(x124))
-        x124_gate_reverse = torch.ones(size=x124_gate.size()).cuda() - x124_gate
-        x124 = x124 + x124 * x124_gate + x234 * x124_gate_reverse
 
         x014_gate = self.sigmoid(self.x014_gatemap(x014))
         x014_gate_reverse = torch.ones(size=x014_gate.size()).cuda() - x014_gate
-        x014 = x014 + x014 * x014_gate + x124 * x014_gate_reverse
-
-        x0124 = self.x0124conv(torch.cat((x014, x124), dim=1))
-        x1234 = self.x1234conv(torch.cat((x124, x234), dim=1))
-
-
-        x0124_gate = self.sigmoid(self.x0124_gatemap(x0124))
-        x0124_gate_reverse = torch.ones(size=x0124_gate.size()).cuda() - x0124_gate
-        x0124 = x0124 + x0124 * x0124_gate + x1234 * x0124_gate_reverse
+        x014 = x014 + x014 * x014_gate + x234 * x014_gate_reverse
 
         x4_guidence = self.x4_guidence_down(x4)
         x4_guidence_out = self.x4_guidence_out(x4_guidence)
         x4_guidence = self.x4_guidence_up(x4_guidence_out)
 
-
-        feat = torch.cat((x0124, x1234, x4_guidence, x4GAP), dim=1)
+        feat = torch.cat((x014, x234, x4_guidence, x4GAP), dim=1)
         out_feat = self.feature_fusion(feat)
 
         return out_feat, x4_guidence_out
@@ -219,7 +196,7 @@ class PANet(nn.Module):
         super(PANet, self).__init__()
 
         self.backbone = resnet(101, 16)
-        self.PAModule = PAmodule(19)
+        self.PAModule = PAmodule(classes)
         self.DIGModule1 = DIGModule(3, 0, 1024)
         self.DIGModule2 = DIGModule(2, 1, 512)
         self.DIGModule3 = DIGModule(1, 1, 256)

@@ -128,7 +128,6 @@ class PAmodule(nn.Module):
         x0124 = self.x0124conv(torch.cat((x014, x124), dim=1))
         x1234 = self.x1234conv(torch.cat((x124, x234), dim=1))
 
-
         x0124_gate = self.sigmoid(self.x0124_gatemap(x0124))
         x0124_gate_reverse = torch.ones(size=x0124_gate.size()).cuda() - x0124_gate
         x0124 = x0124 + x0124 * x0124_gate + x1234 * x0124_gate_reverse
@@ -225,6 +224,10 @@ class PANet(nn.Module):
         self.DIGModule3 = DIGModule(1, 1, 256)
         # self.DIGModule4 = DIGModule(0, 1, 128)
 
+        self.feat_feat1_conv = ConvBNReLU(256 * 2, 256 ,kernel_size=1, stride=1, padding=0)
+        self.feat_feat1_feat2_conv = ConvBNReLU(256 * 3, 256 ,kernel_size=1, stride=1, padding=0)
+
+
         self.feat1_conv = nn.Conv2d(256, 64, kernel_size=1, stride=1, padding=0)
         self.feat2_conv = nn.Conv2d(256, 64, kernel_size=1, stride=1, padding=0)
         self.feat3_conv = nn.Conv2d(256, 64, kernel_size=1, stride=1, padding=0)
@@ -249,7 +252,12 @@ class PANet(nn.Module):
         x1, x2, x3, x4, x0 = self.backbone(x)
         feat, x4_guidence = self.PAModule(x1, x2, x3, x4, x0)
         feat1 = self.DIGModule1(feat, x3, x0)
+        feat = F.interpolate(feat, size=feat1.size()[2:], mode='bilinear', align_corners=True)
+        feat1 = self.feat_feat1_conv(torch.cat((feat, feat1), dim=1))
         feat2 = self.DIGModule2(feat1, x2, x0)
+        feat = F.interpolate(feat, size=feat2.size()[2:], mode='bilinear', align_corners=True)
+        feat1 = F.interpolate(feat1, size=feat2.size()[2:], mode='bilinear', align_corners=True)
+        feat2 = self.feat_feat1_feat2_conv(torch.cat((feat, feat1, feat2), dim=1))
         feat3 = self.DIGModule3(feat2, x1, x0)
         # feat = self.DIGModule4(feat, x0, x0)
         feat1 = self.feat1_conv(feat1)

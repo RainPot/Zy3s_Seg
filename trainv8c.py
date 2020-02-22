@@ -11,7 +11,7 @@ from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.v8c import HighOrder
-from model.PANet19 import PANet
+from model.PANet22 import PANet
 #from model.baseline import HighOrder
 import argparse
 import config_CS as config
@@ -49,7 +49,7 @@ def train(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:34700',
+        init_method='tcp://127.0.0.1:34770',
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
@@ -141,7 +141,7 @@ def train(args):
             total_loss = 0
 
         if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 200) and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './PANet20_train{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './PANet23_train{}.pth'.format(i+1))
 
 
 

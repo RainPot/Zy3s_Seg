@@ -33,11 +33,16 @@ class ConvBNReLU(nn.Module):
 class PAmodule(nn.Module):
     def __init__(self, classes = 19):
         super(PAmodule, self).__init__()
-        self.x1_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
-        self.x2_down_conv = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
-        self.x3_down_conv = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
-        self.x4_down_conv = ConvBNReLU(2048, 1536, kernel_size=1, stride=1, padding=0)
-        self.x0_up_conv = ConvBNReLU(128, 512, kernel_size=1, stride=1, padding=0)
+        # self.x1_down_conv = ConvBNReLU(256, 512, kernel_size=1, stride=1, padding=0)
+        # self.x2_down_conv = ConvBNReLU(512, 512, kernel_size=1, stride=1, padding=0)
+        # self.x3_down_conv = ConvBNReLU(1024, 512, kernel_size=1, stride=1, padding=0)
+        # self.x4_down_conv = ConvBNReLU(2048, 1536, kernel_size=1, stride=1, padding=0)
+        # self.x0_up_conv = ConvBNReLU(128, 512, kernel_size=1, stride=1, padding=0)
+
+        self.x4x0_fusion = ConvBNReLU(2176, 512, kernel_size=1, stride=1, padding=0)
+        self.x4x1_fusion = ConvBNReLU(2304, 512, kernel_size=1, stride=1, padding=0)
+        self.x4x2_fusion = ConvBNReLU(2560, 512, kernel_size=1, stride=1, padding=0)
+        self.x4x3_fusion = ConvBNReLU(3072, 512, kernel_size=1, stride=1, padding=0)
 
         self.x4_guidence_down = ConvBNReLU(2048, 256, kernel_size=1, stride=1, padding=0)
         self.x4_guidence_out = nn.Conv2d(256, classes, kernel_size=1, bias=False)
@@ -45,10 +50,15 @@ class PAmodule(nn.Module):
 
 
 
-        self.dilation18 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=18, dilation=18)
-        self.dilation12 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=12, dilation=12)
-        self.dilation6 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=6, dilation=6)
-        self.dilation1 = ConvBNReLU(2048, 256, kernel_size=3, stride=1, padding=1, dilation=1)
+        self.dilation18 = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=18, dilation=18)
+        self.dilation12 = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=12, dilation=12)
+        self.dilation6 = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=6, dilation=6)
+        self.dilation1 = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=1, dilation=1)
+
+        self.dilation3 = ConvBNReLU(256, 256, kernel_size=3, stride=1, padding=3, dilation=3)
+        self.dilation9 = ConvBNReLU(256, 256, kernel_size=3, stride=1, padding=9, dilation=9)
+        self.dilation15 = ConvBNReLU(256, 256, kernel_size=3, stride=1, padding=15, dilation=15)
+        self.dilation21 = ConvBNReLU(256, 256, kernel_size=3, stride=1, padding=21, dilation=21)
 
         self.x24_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
         self.x14_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
@@ -58,12 +68,12 @@ class PAmodule(nn.Module):
         self.x124_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
 
 
-        self.x014conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=12, dilation=12)
-        self.x124conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=18, dilation=18)
-        self.x234conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=24, dilation=24)
+        self.x014conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=1, dilation=1)
+        self.x124conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=3, dilation=3)
+        self.x234conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=5, dilation=5)
 
-        self.x0124conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=15, dilation=15)
-        self.x1234conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=21, dilation=21)
+        self.x0124conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=1, dilation=1)
+        self.x1234conv = ConvBNReLU(512, 256, kernel_size=3, stride=1, padding=3, dilation=3)
 
         self.x0124_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
         # self.x1234_gatemap = ConvBNReLU(256, 1, kernel_size=1, stride=1, padding=0)
@@ -86,17 +96,26 @@ class PAmodule(nn.Module):
 
     def forward(self, x1, x2, x3, x4, x0):  #x1:256  x2:512  x3:1024  x4:2048  x0:128
         H, W = x4.size()[2:]
-        x1_down = self.x1_down_conv(self.maxpool(self.maxpool(x1)))
-        x2_down = self.x2_down_conv(self.maxpool(x2))
-        x3_down = self.x3_down_conv(x3)
-        x4_down = self.x4_down_conv(x4)
-        x0_up = self.x0_up_conv(self.maxpool(self.maxpool(self.maxpool(x0))))
+        x0 = self.maxpool(self.maxpool(self.maxpool(x0)))
+        x1 = self.maxpool(self.maxpool(x1))
+        x2 = self.maxpool(x2)
 
 
-        x4x0 = self.dilation1(torch.cat((x4_down, x0_up), dim=1))
-        x4x1 = self.dilation6(torch.cat((x4_down, x1_down), dim=1))
-        x4x2 = self.dilation12(torch.cat((x4_down, x2_down), dim=1))
-        x4x3 = self.dilation18(torch.cat((x4_down, x3_down), dim=1))
+        x4x0 = self.x4x0_fusion(torch.cat((x4, x0), dim=1))
+        x4x1 = self.x4x1_fusion(torch.cat((x4, x1), dim=1))
+        x4x2 = self.x4x2_fusion(torch.cat((x4, x2), dim=1))
+        x4x3 = self.x4x3_fusion(torch.cat((x4, x3), dim=1))
+
+        x4x0 = self.dilation1(x4x0)
+        x4x0 = self.dilation3(x4x0)
+        x4x1 = self.dilation6(x4x1)
+        x4x1 = self.dilation9(x4x1)
+        x4x2 = self.dilation12(x4x2)
+        x4x2 = self.dilation15(x4x2)
+        x4x3 = self.dilation18(x4x3)
+        x4x3 = self.dilation21(x4x3)
+
+
         x4GAP = self.GAPConv(self.avg(x4))
         x4GAP = F.interpolate(x4GAP, size=(H, W), mode='bilinear', align_corners=True)
 
@@ -127,7 +146,6 @@ class PAmodule(nn.Module):
 
         x0124 = self.x0124conv(torch.cat((x014, x124), dim=1))
         x1234 = self.x1234conv(torch.cat((x124, x234), dim=1))
-
 
         x0124_gate = self.sigmoid(self.x0124_gatemap(x0124))
         x0124_gate_reverse = torch.ones(size=x0124_gate.size()).cuda() - x0124_gate
