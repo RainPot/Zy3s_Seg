@@ -11,6 +11,7 @@ from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.v8c import HighOrder
+from model.GPNet import PANet
 import argparse
 # import config_CS as config
 import config_ADE20K as config
@@ -67,7 +68,8 @@ def train(args):
 
     print(dataloader.__len__())
     # net = Origin_Res()
-    net = HighOrder(config.classes)
+    # net = HighOrder(config.classes)
+    net = PANet(config.classes)
     # for i in net.named_modules():
     #     print(i)
     # net = Deeplab_v3plus()
@@ -123,7 +125,7 @@ def train(args):
 
         label_see = label.cpu().numpy()
 
-        output = net(image)
+        output, guidence = net(image)
         output_see = output.detach().cpu().numpy()
 
         predict = torch.max(output[0], 1)[1].cpu().numpy() + 1
@@ -131,7 +133,7 @@ def train(args):
         mask = get_mask_pallete(predict, 'cityscapes')
 
 
-        loss = criteria(output, label)
+        loss = 0.8 * criteria(output, label) + 0.2 * criteria(guidence, label)
         loss = loss.mean()
         optimizer.zero_grad()
         loss.backward()
@@ -149,7 +151,7 @@ def train(args):
             total_loss = 0
 
         if (i + 1) == 60000 or (i + 1) == 120000 or (i + 1) == 150000 and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './ResADE20K{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './GPNetADE20K{}.pth'.format(i+1))
 
 
 

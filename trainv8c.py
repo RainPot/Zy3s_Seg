@@ -11,7 +11,7 @@ from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.v8c import HighOrder
-from model.PANet22 import PANet
+from model.GPNet_withoutdecoder import PANet
 #from model.baseline import HighOrder
 import argparse
 import config_CS as config
@@ -141,7 +141,7 @@ def train(args):
             total_loss = 0
 
         if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 200) and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './PANet23_train{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './GPNet_without_train{}.pth'.format(i+1))
 
 
 

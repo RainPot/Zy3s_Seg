@@ -219,7 +219,7 @@ class PANet(nn.Module):
         super(PANet, self).__init__()
 
         self.backbone = resnet(101, 16)
-        self.PAModule = PAmodule(19)
+        self.PAModule = PAmodule(classes)
         self.DIGModule1 = DIGModule(3, 0, 1024)
         self.DIGModule2 = DIGModule(2, 1, 512)
         self.DIGModule3 = DIGModule(1, 1, 256)

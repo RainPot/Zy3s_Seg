@@ -8,7 +8,7 @@ import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes_test
 from model.v8c import HighOrder
-from model.PANet16 import PANet
+from model.PANet21 import PANet
 from metric import fast_hist, cal_scores
 import config_CS
 import argparse
@@ -98,7 +98,7 @@ def eval(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./PANet17_trainval100000.pth'))
+    net.load_state_dict(torch.load('./PANet22_trainval100000.pth'))
     net.eval()
 
     data = iter(dataloader)
@@ -119,12 +119,12 @@ def eval(args):
             for scale in config_CS.eval_scales:
                 new_hw = [int(H * scale), int(W * scale)]
                 image_change = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
-                output = net(image_change)
+                output, w = net(image_change)
                 output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                 output = F.softmax(output, 1)
                 preds += output
                 if config_CS.eval_flip:
-                    output = net(torch.flip(image_change, dims=(3,)))
+                    output, w = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                     output = F.softmax(output, 1)
