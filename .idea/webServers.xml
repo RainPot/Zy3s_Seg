@@ -10,6 +10,14 @@
           <option name="port" value="22" />
         </fileTransfer>
       </webServer>
+      <webServer id="6a39b993-15dc-4dcf-b7f8-74243cce3d45" name="dev" url="http://192.168.193.252">
+        <fileTransfer host="192.168.193.252" port="21400" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="21400" />
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

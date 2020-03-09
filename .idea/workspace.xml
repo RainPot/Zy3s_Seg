@@ -40,7 +40,7 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="D:/work/深度学习/周常学习报告" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="run.code.analysis.last.selected.profile" value="aDefault" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
   </component>
@@ -50,6 +50,28 @@
     </key>
   </component>
   <component name="RunManager" selected="Python.submit">
+    <configuration name="GPMPara" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="Res" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ablationstudy" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ablationstudy/GPMPara.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="smalltest" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Res" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -98,6 +120,7 @@
       <list>
         <item itemvalue="Python.submit" />
         <item itemvalue="Python.smalltest" />
+        <item itemvalue="Python.GPMPara" />
       </list>
     </recent_temporary>
   </component>
@@ -157,6 +180,18 @@
       <workItem from="1582420873753" duration="2958000" />
       <workItem from="1582514038003" duration="4719000" />
       <workItem from="1582593913691" duration="5203000" />
+      <workItem from="1582681729737" duration="631000" />
+      <workItem from="1582763938258" duration="3312000" />
+      <workItem from="1582849531846" duration="11380000" />
+      <workItem from="1582948255299" duration="9120000" />
+      <workItem from="1583024421843" duration="23027000" />
+      <workItem from="1583112675400" duration="9024000" />
+      <workItem from="1583199824118" duration="3046000" />
+      <workItem from="1583285127370" duration="4477000" />
+      <workItem from="1583378118956" duration="2228000" />
+      <workItem from="1583457387701" duration="769000" />
+      <workItem from="1583539955248" duration="174000" />
+      <workItem from="1583719831608" duration="1285000" />
     </task>
     <servers />
   </component>
@@ -177,41 +212,50 @@
     </option>
   </component>
   <component name="WindowStateProjectService">
-    <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1582369145071">
+    <state x="552" y="178" key="#Deployment" timestamp="1583062737499">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1582369145071" />
-    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1582640814553">
+    <state x="552" y="178" key="#Deployment/0.0.1920.1040@0.0.1920.1040" timestamp="1583062737499" />
+    <state x="740" y="275" key="FileChooserDialogImpl" timestamp="1583457556709">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1582640814553" />
-    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1582640814553">
+    <state x="740" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1583457556709" />
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom" timestamp="1583336725485">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1582640814553" />
-    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1582640814553">
+    <state width="1877" height="282" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1583336725485" />
+    <state width="1877" height="282" key="GridCell.Tab.0.center" timestamp="1583336725485">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1582640814553" />
-    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1582640814553">
+    <state width="1877" height="282" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1583336725485" />
+    <state width="1877" height="282" key="GridCell.Tab.0.left" timestamp="1583336725485">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1582640814553" />
+    <state width="1877" height="282" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1583336725485" />
+    <state width="1877" height="282" key="GridCell.Tab.0.right" timestamp="1583336725485">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1877" height="282" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1583336725485" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1581926055969">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="461" y="162" key="SettingsEditor/0.0.1920.1040@0.0.1920.1040" timestamp="1581926055969" />
-    <state x="645" y="344" key="com.intellij.ide.util.TipDialog" timestamp="1582593927623">
+    <state x="645" y="344" key="com.intellij.ide.util.TipDialog" timestamp="1583719834254">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="645" y="344" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1582593927623" />
+    <state x="645" y="344" key="com.intellij.ide.util.TipDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1583719834254" />
+    <state x="838" y="250" key="ftp.server.browser" timestamp="1583062735953">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="838" y="250" key="ftp.server.browser/0.0.1920.1040@0.0.1920.1040" timestamp="1583062735953" />
     <state x="827" y="413" key="publish.login" timestamp="1581989391357">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="827" y="413" key="publish.login/0.0.1920.1040@0.0.1920.1040" timestamp="1581989391357" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Res$smalltest.coverage" NAME="smalltest Coverage Results" MODIFIED="1581235178813" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Res$submit.coverage" NAME="submit Coverage Results" MODIFIED="1582624434983" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Res$GPMPara.coverage" NAME="GPMPara Coverage Results" MODIFIED="1583062536537" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/ablationstudy" />
+    <SUITE FILE_PATH="coverage/Res$smalltest.coverage" NAME="smalltest Coverage Results" MODIFIED="1583135965709" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Res$submit.coverage" NAME="submit Coverage Results" MODIFIED="1583294188415" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

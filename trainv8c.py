@@ -11,7 +11,8 @@ from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.v8c import HighOrder
-from model.GPNet_withoutdecoder import PANet
+# from model.GPNet_withoutdecoder import PANet
+from ablationstudy.AUM3res50 import PANet
 #from model.baseline import HighOrder
 import argparse
 import config_CS as config
@@ -49,7 +50,7 @@ def train(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend='nccl',
-        init_method='tcp://127.0.0.1:34770',
+        init_method='tcp://127.0.0.1:34850',
         world_size=torch.cuda.device_count(),
         rank=args.local_rank
         # rank=0
@@ -123,7 +124,7 @@ def train(args):
 
 
         # loss = criteria(output, label)
-        loss = 0.8 * criteria(output, label) + 0.2 * criteria(guidence, label)
+        loss = 0.9 * criteria(output, label) + 0.1 * criteria(guidence, label)
         loss = loss.mean()
         optimizer.zero_grad()
         loss.backward()
@@ -141,7 +142,7 @@ def train(args):
             total_loss = 0
 
         if (i+1) % 100 == 0 and (i+1) >= (int(config.max_iter) - 200) and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './GPNet_without_train{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './ablation/15x15global{}.pth'.format(i+1))
 
 
 

@@ -6,8 +6,9 @@ import os
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
-from model.v8c import HighOrder
-from model.PANet22 import PANet
+# from model.v8c import HighOrder
+from ablationstudy.AUM3res50 import PANet
+# from model.GPNet import PANet
 from metric import fast_hist, cal_scores
 import config_CS
 import argparse
@@ -75,7 +76,7 @@ def eval(args):
     torch.cuda.set_device(args.local_rank)
     dist.init_process_group(
         backend = 'nccl',
-        init_method = 'tcp://127.0.0.1:{}'.format(config_CS.port),
+        init_method = 'tcp://127.0.0.1:34597',
         world_size = torch.cuda.device_count(),
         # rank=0
         rank=args.local_rank
@@ -100,7 +101,8 @@ def eval(args):
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./PANet23_train60000.pth'))
+    # net.load_state_dict(torch.load('./ablation/AUM3res5060000.pth'))
+    net.load_state_dict(torch.load('./ablation/lamda050560000.pth'))
     net.eval()
     
     data = iter(dataloader)
@@ -124,11 +126,13 @@ def eval(args):
                 new_hw = [int(H * scale), int(W * scale)]
                 image_change = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
                 output, w = net(image_change)
+                # output = net(image_change)
                 output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                 output = F.softmax(output, 1)
                 preds += output
                 if config_CS.eval_flip:
                     output, w = net(torch.flip(image_change, dims=(3,)))
+                    # output = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                     output = F.softmax(output,1)
@@ -143,11 +147,11 @@ def eval(args):
                 print('iter: {}'.format(num))
 
             preds = np.asarray(np.argmax(preds.cpu(), axis=1), dtype=np.uint8)
-            # for i in range(preds.shape[0]):
-            #     pred = convert_label(preds[i], inverse=True)
-            #     save_img = Image.fromarray(pred)
-            #     save_img.putpalette(palette)
-            #     save_img.save(os.path.join('./CS_results/', name[i] + '.png'))
+            for i in range(preds.shape[0]):
+                pred = convert_label(preds[i], inverse=True)
+                save_img = Image.fromarray(pred)
+                save_img.putpalette(palette)
+                save_img.save(os.path.join('./results/', name[i] + '.png'))
 
         hist = hist.cpu().numpy().astype(np.float32)
         miou = cal_scores(hist)

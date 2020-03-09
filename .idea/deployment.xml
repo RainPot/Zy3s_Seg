@@ -9,24 +9,10 @@
           </mappings>
         </serverdata>
       </paths>
-      <paths name="root@192.168.193.252:21400">
+      <paths name="dev">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@192.168.193.252:21400 (1)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@192.168.193.252:21400 (2)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/root/Res" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>

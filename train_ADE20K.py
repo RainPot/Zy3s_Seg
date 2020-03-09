@@ -11,7 +11,8 @@ from datasets.ADE20K import ADE20K
 from model.origin_res import Origin_Res
 from model.deeplabv3 import Deeplab_v3plus
 from model.v8c import HighOrder
-from model.GPNet import PANet
+# from model.GPNet import PANet
+from ablationstudy.ADEres50 import PANet
 import argparse
 # import config_CS as config
 import config_ADE20K as config
@@ -151,7 +152,7 @@ def train(args):
             total_loss = 0
 
         if (i + 1) == 60000 or (i + 1) == 120000 or (i + 1) == 150000 and dist.get_rank() == 0:
-            torch.save(net.state_dict(), './GPNetADE20K{}.pth'.format(i+1))
+            torch.save(net.state_dict(), './GPADE20Kres50{}.pth'.format(i+1))
 
 
 

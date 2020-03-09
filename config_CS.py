@@ -29,8 +29,10 @@ ohem_thresh = 0.7
 
 
 
-eval_scales = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75)
-eval_flip = True
+# eval_scales = (0.5, 0.75, 1.0, 1.25, 1.5, 1.75)
+eval_scales = (1.0,)
+# eval_flip = True
+eval_flip = False
 
 
 LR_DECAY = 10
@@ -40,6 +42,6 @@ POLY_POWER = 0.9
 WEIGHT_DECAY = 1e-4
 
 
-port = 35771
+port = 35785
 
 

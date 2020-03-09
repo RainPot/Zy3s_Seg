@@ -29,7 +29,7 @@ ohem_thresh = 0.7
 
 
 
-eval_scales = (0.5, 0.75, 1.0)
+eval_scales = (0.5, 0.75, 1.0, 1.25)
 eval_flip = True
 
 

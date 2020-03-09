@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 import torch.distributed as dist
 from torch.utils.data import DataLoader
 from datasets.cityscapes import CityScapes
 from datasets.ADE20K import ADE20K
 from model.v8cADE import HighOrder
+from ablationstudy.ADE20KGPNettest import PANet
 from metric import fast_hist, cal_scores
 import config_ADE20K as config
 import argparse
@@ -76,7 +77,7 @@ def eval(args):
         backend='nccl',
         init_method='tcp://127.0.0.1:{}'.format(config.port),
         world_size=torch.cuda.device_count(),
-        rank=0
+        rank=args.local_rank
         # rank=args.local_rank
     )
 
@@ -92,13 +93,13 @@ def eval(args):
         pin_memory=True
     )
 
-    net = HighOrder(150)
+    net = PANet(150)
     net.cuda()
     net = torch.nn.SyncBatchNorm.convert_sync_batchnorm(net)
     net = nn.parallel.DistributedDataParallel(net,
                                               device_ids=[args.local_rank],
                                               output_device=args.local_rank)
-    net.load_state_dict(torch.load('./ResADE20K150000.pth', map_location='cpu'))
+    net.load_state_dict(torch.load('./GPADE20Kres50150000.pth', map_location='cpu'))
     net.eval()
 
     data = iter(dataloader)
@@ -121,12 +122,12 @@ def eval(args):
             for scale in config.eval_scales:
                 new_hw = [int(H * scale), int(W * scale)]
                 image_change = F.interpolate(image, new_hw, mode='bilinear', align_corners=True)
-                output = net(image_change)
+                output, w = net(image_change)
                 output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                 output = F.softmax(output, 1)
                 preds += output
                 if config.eval_flip:
-                    output = net(torch.flip(image_change, dims=(3,)))
+                    output, w = net(torch.flip(image_change, dims=(3,)))
                     output = torch.flip(output, dims=(3,))
                     output = F.interpolate(output, (H, W), mode='bilinear', align_corners=True)
                     output = F.softmax(output, 1)
@@ -140,12 +141,12 @@ def eval(args):
             if num % 5 == 0:
                 print('iter: {}'.format(num))
 
-            # preds = np.asarray(np.argmax(preds.cpu(), axis=1), dtype=np.uint8)
+            preds = np.asarray(np.argmax(preds.cpu(), axis=1), dtype=np.uint8)
             # for i in range(preds.shape[0]):
             #     pred = convert_label(preds[i], inverse=True)
             #     save_img = Image.fromarray(pred)
             #     save_img.putpalette(palette)
-            #     save_img.save(os.path.join('./results/', name[i] + '.png'))
+            #     save_img.save(os.path.join('./CS_results/', name[i] + '.png'))
 
         hist = hist.cpu().numpy().astype(np.float32)
         miou = cal_scores(hist)
